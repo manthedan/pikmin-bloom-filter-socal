@@ -22,8 +22,15 @@ let searchText = '';
 let lastScanLatLng = null;
 let cellBuckets = new Map();
 let decorToCells = new Map();
+let tileIndex = null;
+let tileByKey = new Map();
+let loadedTileKeys = new Set();
+let decorDataReady = false;
 const SOLVER_K = 3;
 const BUCKET_DEGREES = 0.002;
+const INITIAL_TILE_PAD = 1;
+const DETECTOR_TILE_PAD = 1;
+const MAX_SOLVER_TILE_RING = 5;
 
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
 const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Clothes Store', 'Makeup Store']);
@@ -86,6 +93,10 @@ function featureMatches(feature) {
   return haystack.includes(searchText);
 }
 
+function updateLoadedCounts() {
+  $('total-count').textContent = `${cellFeatures.length.toLocaleString()} loaded cells${tileIndex ? ` / ${tileIndex.cellCount.toLocaleString()} total cells` : ''}`;
+}
+
 function draw() {
   featureLayer.clearLayers();
   let shown = 0;
@@ -131,27 +142,83 @@ function renderFilters() {
   }
 }
 
+function lonLatToTile(lon, lat, z) {
+  const n = 2 ** z;
+  const x = Math.floor((lon + 180) / 360 * n);
+  const latRad = lat * Math.PI / 180;
+  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
+  return [x, y];
+}
+
+function tileRangeForBounds(bounds, pad = 0) {
+  const z = tileIndex.z;
+  const [minX, maxY] = lonLatToTile(bounds.getWest(), bounds.getSouth(), z);
+  const [maxX, minY] = lonLatToTile(bounds.getEast(), bounds.getNorth(), z);
+  const keys = [];
+  for (let x = minX - pad; x <= maxX + pad; x++) {
+    for (let y = minY - pad; y <= maxY + pad; y++) keys.push(`${x}/${y}`);
+  }
+  return keys;
+}
+
+async function loadTileKeys(keys) {
+  const wanted = [...new Set(keys)].filter(key => tileByKey.has(key) && !loadedTileKeys.has(key));
+  if (!wanted.length) return 0;
+  $('generated').textContent = `Loading ${wanted.length} nearby chunk(s)…`;
+  const collections = await Promise.all(wanted.map(key => fetch(`./data/cell-tiles/${tileByKey.get(key).path}`).then(r => r.json())));
+  const seen = new Set(cellFeatures.map(f => f.properties.token));
+  let added = 0;
+  for (const fc of collections) {
+    for (const f of fc.features) {
+      if (seen.has(f.properties.token)) continue;
+      seen.add(f.properties.token);
+      cellFeatures.push(f);
+      added++;
+    }
+  }
+  for (const key of wanted) loadedTileKeys.add(key);
+  allFeatures = cellFeatures;
+  buildSpatialIndexes();
+  updateLoadedCounts();
+  $('generated').textContent = `${loadedTileKeys.size}/${tileIndex.tileCount} chunks loaded · ${cellFeatures.length.toLocaleString()} cells`;
+  draw();
+  return added;
+}
+
+async function loadTilesForCurrentView(pad = INITIAL_TILE_PAD) {
+  if (!tileIndex) return 0;
+  return loadTileKeys(tileRangeForBounds(map.getBounds(), pad));
+}
+
+async function loadTileRingAround(lat, lon, ring) {
+  if (!tileIndex) return 0;
+  const [cx, cy] = lonLatToTile(lon, lat, tileIndex.z);
+  const keys = [];
+  for (let dx = -ring; dx <= ring; dx++) {
+    for (let dy = -ring; dy <= ring; dy++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
+      keys.push(`${cx + dx}/${cy + dy}`);
+    }
+  }
+  return loadTileKeys(keys);
+}
+
 async function loadDecorData() {
-  $('generated').textContent = 'Loading tiled decor cells…';
-  const [manifest, tileIndex] = await Promise.all([
+  $('generated').textContent = 'Loading decor index…';
+  const [manifest, loadedIndex] = await Promise.all([
     fetch('./data/manifest.json').then(r => r.json()),
     fetch('./data/cell-tiles-index.json').then(r => r.json()),
   ]);
-  const tileCollections = await Promise.all(tileIndex.tiles.map(t => fetch(`./data/cell-tiles/${t.path}`).then(r => r.json())));
-  cellFeatures = tileCollections.flatMap(fc => fc.features);
-  allFeatures = cellFeatures;
-  buildSpatialIndexes();
+  tileIndex = loadedIndex;
+  tileByKey = new Map(tileIndex.tiles.map(t => [`${t.x}/${t.y}`, t]));
   categories = manifest.categories;
   active = new Set();
-  $('total-count').textContent = `${cellFeatures.length.toLocaleString()} cells / ${manifest.featureCount.toLocaleString()} spots`;
-  $('generated').textContent = `Generated ${new Date(manifest.generatedAt).toLocaleString()} · ${tileIndex.tileCount} chunks`;
+  decorDataReady = true;
+  $('generated').textContent = `Generated ${new Date(manifest.generatedAt).toLocaleString()} · ${tileIndex.tileCount} chunks available`;
   renderFilters();
   renderTargetOptions();
   syncCheckboxes();
-  draw();
-
-  const bbox = manifest.bbox;
-  if (bbox) map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
+  await loadTilesForCurrentView(INITIAL_TILE_PAD);
 }
 
 function initBasemapOnly() {
@@ -295,21 +362,34 @@ function selectedTargets() {
   return [$('target-decor').value, $('target-decor-2').value].filter(Boolean);
 }
 
-function findPureTarget() {
-  if (!cellFeatures.length) return;
+async function expandSearchUntilEnough(getSeedCells, predicate) {
+  const origin = lastScanLatLng || map.getCenter();
+  let results = [];
+  for (let ring = 0; ring <= MAX_SOLVER_TILE_RING; ring++) {
+    await loadTileRingAround(origin.lat, origin.lng, ring);
+    results = searchCandidatePositions(getSeedCells(), predicate, SOLVER_K);
+    if (results.length >= SOLVER_K) break;
+  }
+  return results;
+}
+
+async function findPureTarget() {
+  if (!decorDataReady) return;
   const target = $('target-decor').value;
-  const seedCells = decorToCells.get(target) || [];
-  const results = searchCandidatePositions(seedCells, (scan) => scan.decors.has(target) && [...scan.decors].every(d => d === target));
+  const results = await expandSearchUntilEnough(
+    () => decorToCells.get(target) || [],
+    (scan) => scan.decors.has(target) && [...scan.decors].every(d => d === target)
+  );
   showSolverResults(results, `clean ${escapeHtml(target)}`);
 }
 
-function findComboTarget() {
-  if (!cellFeatures.length) return;
+async function findComboTarget() {
+  if (!decorDataReady) return;
   const targets = selectedTargets();
-  const seedCells = targets
+  const getSeedCells = () => targets
     .map(t => decorToCells.get(t) || [])
     .sort((a, b) => a.length - b.length)[0] || [];
-  const results = searchCandidatePositions(seedCells, (scan) => targets.every(t => scan.decors.has(t)));
+  const results = await expandSearchUntilEnough(getSeedCells, (scan) => targets.every(t => scan.decors.has(t)));
   showSolverResults(results, targets.map(t => escapeHtml(t)).join(' + '));
 }
 
@@ -324,6 +404,15 @@ $('select-all').addEventListener('click', () => { active = new Set(categories.ma
 $('clear-all').addEventListener('click', () => { active.clear(); syncCheckboxes(); draw(); });
 $('find-pure').addEventListener('click', () => findPureTarget());
 $('find-combo').addEventListener('click', () => findComboTarget());
-map.on('click', (e) => scanDetector(e.latlng));
+map.on('click', async (e) => {
+  if (decorDataReady) await loadTileKeys(tileRangeForBounds(L.latLngBounds(e.latlng, e.latlng), DETECTOR_TILE_PAD));
+  scanDetector(e.latlng);
+});
+let moveLoadTimer = null;
+map.on('moveend', () => {
+  if (!decorDataReady) return;
+  clearTimeout(moveLoadTimer);
+  moveLoadTimer = setTimeout(() => loadTilesForCurrentView(0), 250);
+});
 
 initBasemapOnly();
