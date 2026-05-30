@@ -1,2 +1,4 @@
 node_modules/
 .DS_Store
+data/osm/*.osm.pbf
+data/osm/*.raw.geojson

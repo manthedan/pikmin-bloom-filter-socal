@@ -10,7 +10,8 @@
     "dev": "npm run build:data && npm run serve",
     "build:cells": "node scripts/build-cells.mjs",
     "build": "npm run build:geofabrik",
-    "build:geofabrik": "node scripts/build-geofabrik.mjs && npm run build:cells"
+    "build:geofabrik": "node scripts/build-geofabrik.mjs && npm run build:cells && npm run build:tiles",
+    "build:tiles": "node scripts/build-cell-tiles.mjs"
   },
   "keywords": [],
   "author": "",

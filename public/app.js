@@ -33,7 +33,8 @@ function pointStyle(color) {
 
 function primaryColor(feature) {
   const first = feature.properties.decors[0];
-  return feature.properties.decorColors[first] || '#334d2f';
+  const colors = feature.properties.decorColors || feature.properties.colorByDecor || {};
+  return colors[first] || '#334d2f';
 }
 
 function metersBetween(aLat, aLon, bLat, bLon) {
@@ -51,9 +52,18 @@ function offsetMeters(lat, lon, east, north) {
 
 function popup(feature) {
   const p = feature.properties;
-  const badges = p.decors.map(d => `<span class="badge" style="background:${p.decorColors[d] || '#555'}">${d}</span>`).join('');
-  const tags = Object.entries(p.tags || {}).sort().map(([k, v]) => `${k}=${v}`).join('\n');
+  const colors = p.decorColors || p.colorByDecor || {};
+  const badges = p.decors.map(d => `<span class="badge" style="background:${colors[d] || '#555'}">${d}</span>`).join('');
   const [lon, lat] = p.center;
+  if (p.token) {
+    const spots = (p.spots || []).map(s => `• ${escapeHtml(s.name)} (${s.decors.map(escapeHtml).join(', ')})`).join('<br>');
+    return `<div class="popup-title">S2 cell ${escapeHtml(p.token)}</div>
+      <div class="badges">${badges}</div>
+      <div>${p.spotCount || 0} OSM candidate spot(s) in this approximate cell</div>
+      <div><a target="_blank" rel="noopener" href="https://maps.google.com/?q=${lat},${lon}">open center in Google Maps</a></div>
+      <div class="tags">${spots}</div>`;
+  }
+  const tags = Object.entries(p.tags || {}).sort().map(([k, v]) => `${k}=${v}`).join('\n');
   return `<div class="popup-title">${escapeHtml(p.name)}</div>
     <div class="badges">${badges}</div>
     <div><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/${p.osmType}/${p.osmId}">Open in OSM</a> · <a target="_blank" rel="noopener" href="https://maps.google.com/?q=${lat},${lon}">Google Maps</a></div>
@@ -68,7 +78,7 @@ function featureMatches(feature) {
   const p = feature.properties;
   if (!p.decors.some(d => active.has(d))) return false;
   if (!searchText) return true;
-  const haystack = `${p.name} ${p.decors.join(' ')} ${Object.entries(p.tags || {}).map(([k, v]) => `${k} ${v}`).join(' ')}`.toLowerCase();
+  const haystack = `${p.name || p.token || ''} ${p.decors.join(' ')} ${Object.entries(p.tags || {}).map(([k, v]) => `${k} ${v}`).join(' ')}`.toLowerCase();
   return haystack.includes(searchText);
 }
 
@@ -118,24 +128,24 @@ function renderFilters() {
 }
 
 async function loadDecorData() {
-  $('generated').textContent = 'Loading decor data…';
-  const [geojson, manifest, cells] = await Promise.all([
-    fetch('./data/decor-spots.geojson').then(r => r.json()),
+  $('generated').textContent = 'Loading tiled decor cells…';
+  const [manifest, tileIndex] = await Promise.all([
     fetch('./data/manifest.json').then(r => r.json()),
-    fetch('./data/decor-cells-l17.geojson').then(r => r.json()),
+    fetch('./data/cell-tiles-index.json').then(r => r.json()),
   ]);
-  allFeatures = geojson.features;
-  cellFeatures = cells.features;
+  const tileCollections = await Promise.all(tileIndex.tiles.map(t => fetch(`./data/cell-tiles/${t.path}`).then(r => r.json())));
+  cellFeatures = tileCollections.flatMap(fc => fc.features);
+  allFeatures = cellFeatures;
   categories = manifest.categories;
   active = new Set();
-  $('total-count').textContent = manifest.featureCount.toLocaleString();
-  $('generated').textContent = `Generated ${new Date(manifest.generatedAt).toLocaleString()}`;
+  $('total-count').textContent = `${cellFeatures.length.toLocaleString()} cells / ${manifest.featureCount.toLocaleString()} spots`;
+  $('generated').textContent = `Generated ${new Date(manifest.generatedAt).toLocaleString()} · ${tileIndex.tileCount} chunks`;
   renderFilters();
   renderTargetOptions();
   syncCheckboxes();
   draw();
 
-  const bbox = geojson.bbox;
+  const bbox = manifest.bbox;
   if (bbox) map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
 }
 
