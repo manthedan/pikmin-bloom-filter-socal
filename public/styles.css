@@ -56,6 +56,8 @@ button:active { transform: translateY(1px); }
 .popup-title { font-size: 16px; font-weight: 850; margin-bottom: 6px; }
 .badges { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
 .badge { border-radius: 999px; padding: 3px 8px; color: white; font-size: 12px; font-weight: 850; }
+.decor-emoji-icon { display: grid; place-items: center; min-width: 30px; height: 22px; padding: 1px 5px; border-radius: 999px; background: rgba(255, 255, 255, .86); border: 1px solid rgba(38, 48, 38, .14); box-shadow: 0 1px 6px rgba(0,0,0,.18); font-size: 15px; line-height: 1; white-space: nowrap; pointer-events: none; }
+.emoji-more { margin-left: 1px; font-size: 10px; font-weight: 900; color: #2f5d3a; vertical-align: middle; }
 .tags { max-height: 130px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; background: #f6f6f6; padding: 8px; border-radius: 8px; }
 .marker-dot { width: 18px; height: 18px; border: 3px solid white; border-radius: 50%; box-shadow: 0 1px 8px rgba(0,0,0,.35); }
 @media (max-width: 800px) {

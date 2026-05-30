@@ -38,6 +38,45 @@ const MAX_SOLVER_TILE_RING = 5;
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
 const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Clothes Store', 'Makeup Store']);
 const STARTER_CATEGORIES = new Set(['Cafe', 'Bakery', 'Sweetshop', 'Movie Theater', 'Library Bookstore', 'Pharmacy', 'Supermarket', 'Post Office']);
+const DECOR_EMOJI = {
+  'Restaurant': '🍽️',
+  'Cafe': '☕',
+  'Sweetshop': '🍬',
+  'Bakery': '🥐',
+  'Burger Place': '🍔',
+  'Sushi Restaurant': '🍣',
+  'Italian Restaurant': '🍝',
+  'Mexican Restaurant': '🌮',
+  'Ramen Restaurant': '🍜',
+  'Curry Restaurant': '🍛',
+  'Corner Store': '🏪',
+  'Supermarket': '🛒',
+  'Pharmacy': '💊',
+  'Makeup Store': '💄',
+  'Clothes Store': '👕',
+  'Hair Salon': '💇',
+  'Appliances Store': '🔌',
+  'Diy Store': '🛠️',
+  'Movie Theater': '🎬',
+  'Library Bookstore': '📚',
+  'Art Gallery': '🖼️',
+  'Hotel': '🏨',
+  'Post Office': '📮',
+  'University College': '🎓',
+  'Park': '🍀',
+  'Forest': '🌲',
+  'Waterside': '💧',
+  'Beach': '🏖️',
+  'Mountain': '⛰️',
+  'Zoo': '🦁',
+  'Theme Park': '🎡',
+  'Airport': '✈️',
+  'Station': '🚉',
+  'Bus Stop': '🚌',
+  'Bridge': '🌉',
+  'Stadium': '🏟️',
+  'Fortune': '🔮',
+};
 
 const $ = (id) => document.getElementById(id);
 
@@ -45,8 +84,20 @@ function pointStyle(color) {
   return { radius: 4, color: '#fff', weight: 1.5, fillColor: color, fillOpacity: 0.85 };
 }
 
+function selectedDecorsForFeature(feature) {
+  return feature.properties.decors.filter(d => active.has(d));
+}
+
+function emojiForFeature(feature) {
+  const selected = selectedDecorsForFeature(feature);
+  const decors = selected.length ? selected : feature.properties.decors;
+  const icons = decors.map(d => DECOR_EMOJI[d] || '📍');
+  const shown = icons.slice(0, 3).join('');
+  return icons.length > 3 ? `${shown}<span class="emoji-more">+${icons.length - 3}</span>` : shown;
+}
+
 function primaryColor(feature) {
-  const first = feature.properties.decors[0];
+  const first = selectedDecorsForFeature(feature)[0] || feature.properties.decors[0];
   const colors = feature.properties.decorColors || feature.properties.colorByDecor || {};
   return colors[first] || '#334d2f';
 }
@@ -120,6 +171,19 @@ function draw() {
     }
     layer.bindPopup(popup(feature));
     layer.addTo(featureLayer);
+    if (feature.properties.token && map.getZoom() >= 13) {
+      const [lon, lat] = feature.properties.center;
+      const emoji = L.marker([lat, lon], {
+        interactive: false,
+        icon: L.divIcon({
+          className: 'decor-emoji-icon',
+          html: emojiForFeature(feature),
+          iconSize: [44, 24],
+          iconAnchor: [22, 12],
+        }),
+      });
+      emoji.addTo(featureLayer);
+    }
     const [lon, lat] = feature.properties.center;
     bounds.push([lat, lon]);
   }
