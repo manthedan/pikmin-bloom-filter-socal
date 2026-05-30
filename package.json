@@ -1,0 +1,25 @@
+{
+  "name": "costa-mesa-pikmin-map",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:data": "node scripts/build-data.mjs",
+    "serve": "python3 -m http.server 5173 -d public",
+    "dev": "npm run build:data && npm run serve",
+    "build:cells": "node scripts/build-cells.mjs",
+    "build": "npm run build:data && npm run build:cells"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@turf/boolean-point-in-polygon": "^7.3.5",
+    "@turf/destination": "^7.3.5",
+    "@turf/distance": "^7.3.5",
+    "@turf/helpers": "^7.3.5",
+    "nodes2ts": "^4.0.2"
+  }
+}

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Costa Mesa Pikmin Decor Map</title>
+  <link rel="stylesheet" href="./vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="./styles.css?v=5" />
+</head>
+<body>
+  <aside id="sidebar">
+    <header>
+      <div class="eyebrow">Static OSM-derived prototype</div>
+      <h1>Costa Mesa Decor Map</h1>
+      <p>Fast local candidates for Pikmin Bloom decor. Unofficial; in-game results can differ.</p>
+    </header>
+
+    <label class="search-label">
+      Search places
+      <input id="search" type="search" placeholder="South Coast Plaza, cafe, park…" />
+    </label>
+
+    <div class="stats">
+      <strong id="visible-count">0</strong> shown · <span id="total-count">0</span> total
+      <br><small id="generated">Basemap only. Decor data not loaded yet.</small>
+    </div>
+
+    <div class="actions">
+      <button id="load-data">Load decor data</button>
+      <button id="core-view">Starter spots</button>
+      <button id="select-all">Select all</button>
+      <button id="clear-all">Clear all</button>
+    </div>
+    <p class="hint">First confirm the map tiles look normal. Then load decor data.</p>
+
+    <section class="detector-panel">
+      <h2>Detector simulator</h2>
+      <p class="hint">Click the map to simulate a 100m detector scan. Approximate S2 level 17 cells.</p>
+      <div id="detector-output">No scan yet.</div>
+      <label class="search-label">
+        Target decor A
+        <select id="target-decor"></select>
+      </label>
+      <label class="search-label">
+        Target decor B optional
+        <select id="target-decor-2"></select>
+      </label>
+      <button id="find-pure">Find closest clean target spot</button>
+      <button id="find-combo">Find closest spot containing selected decors</button>
+      <div id="solver-output"></div>
+    </section>
+
+    <section id="filters" aria-label="Decor filters"></section>
+
+    <details>
+      <summary>How this works</summary>
+      <p>Build script queries OSM/Overpass once for Costa Mesa, maps tags to decor categories, and writes static GeoJSON. The app only reads local files, so browsing is fast.</p>
+      <p>Attribution: © OpenStreetMap contributors.</p>
+    </details>
+  </aside>
+
+  <main>
+    <div id="map"></div>
+  </main>
+
+  <script src="./vendor/leaflet/leaflet.js"></script>
+  <script src="./app.js?v=7" type="module"></script>
+</body>
+</html>
