@@ -1,7 +1,10 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { S2CellId, S2LatLng, S2Cell } from 'nodes2ts';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import { point } from '@turf/helpers';
 
 const LEVEL = Number(process.env.S2_LEVEL || 17);
+const POLYGON_SAMPLE_METERS = Number(process.env.POLYGON_SAMPLE_METERS || 35);
 const IN = new URL('../public/data/decor-spots.geojson', import.meta.url);
 const OUT = new URL(`../public/data/decor-cells-l${LEVEL}.geojson`, import.meta.url);
 
@@ -21,11 +24,34 @@ function cellPolygon(id) {
   return ring;
 }
 
+function walkPositions(coords, fn) {
+  if (!Array.isArray(coords)) return;
+  if (typeof coords[0] === 'number') return fn(coords);
+  for (const c of coords) walkPositions(c, fn);
+}
+
+function bboxOfGeometry(geometry) {
+  let minLon = Infinity, minLat = Infinity, maxLon = -Infinity, maxLat = -Infinity;
+  walkPositions(geometry.coordinates, ([lon, lat]) => {
+    minLon = Math.min(minLon, lon); minLat = Math.min(minLat, lat);
+    maxLon = Math.max(maxLon, lon); maxLat = Math.max(maxLat, lat);
+  });
+  return [minLon, minLat, maxLon, maxLat];
+}
+
+function metersToLatDegrees(m) {
+  return m / 111320;
+}
+
+function metersToLonDegrees(m, lat) {
+  return m / (111320 * Math.max(0.2, Math.cos(lat * Math.PI / 180)));
+}
+
 const spots = JSON.parse(await readFile(IN, 'utf8'));
 const cells = new Map();
-for (const f of spots.features) {
-  const [lon, lat] = f.properties.center || f.geometry.coordinates;
-  if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
+
+function addCellForFeature(f, lon, lat) {
+  if (!Number.isFinite(lon) || !Number.isFinite(lat)) return;
   const id = cellIdFor(lon, lat);
   const token = id.toToken();
   if (!cells.has(token)) {
@@ -43,7 +69,47 @@ for (const f of spots.features) {
     c.decors.add(d);
     c.colorByDecor[d] = f.properties.decorColors[d];
   }
-  c.spots.push({ id: f.id, name: f.properties.name, decors: f.properties.decors, center: f.properties.center });
+  if (c.spots.length < 80 && !c.spots.some(s => s.id === f.id)) {
+    c.spots.push({ id: f.id, name: f.properties.name, decors: f.properties.decors, center: f.properties.center });
+  }
+}
+
+function addPolygonCells(f) {
+  const [minLon, minLat, maxLon, maxLat] = bboxOfGeometry(f.geometry);
+  if (![minLon, minLat, maxLon, maxLat].every(Number.isFinite)) return;
+
+  // Always keep the representative point. Small polygons can otherwise fall between samples.
+  if (f.properties.center) {
+    const [lon, lat] = f.properties.center;
+    addCellForFeature(f, lon, lat);
+  }
+
+  const latStep = metersToLatDegrees(POLYGON_SAMPLE_METERS);
+  const lonStep = metersToLonDegrees(POLYGON_SAMPLE_METERS, (minLat + maxLat) / 2);
+  const seenTokens = new Set();
+
+  for (let lat = minLat; lat <= maxLat; lat += latStep) {
+    for (let lon = minLon; lon <= maxLon; lon += lonStep) {
+      const id = cellIdFor(lon, lat);
+      const token = id.toToken();
+      if (seenTokens.has(token)) continue;
+      seenTokens.add(token);
+      const center = id.toLatLng();
+      const clon = center.lngDegrees;
+      const clat = center.latDegrees;
+      if (booleanPointInPolygon(point([clon, clat]), f)) addCellForFeature(f, clon, clat);
+    }
+  }
+}
+
+for (const f of spots.features) {
+  if (!f.geometry) continue;
+  if (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon') {
+    addPolygonCells(f);
+  } else {
+    const [lon, lat] = f.properties.center || f.geometry.coordinates;
+    addCellForFeature(f, lon, lat);
+  }
 }
 
 const features = [...cells.values()].map(c => ({
@@ -63,11 +129,12 @@ const features = [...cells.values()].map(c => ({
 
 const out = {
   type: 'FeatureCollection',
-  name: `Costa Mesa approximate decor S2 cells L${LEVEL}`,
+  name: `Approximate decor S2 cells L${LEVEL}`,
   generatedAt: new Date().toISOString(),
   source: 'Derived from public/data/decor-spots.geojson OSM candidates',
   detectorRadiusMeters: 100,
   s2Level: LEVEL,
+  polygonSampleMeters: POLYGON_SAMPLE_METERS,
   features,
 };
 
