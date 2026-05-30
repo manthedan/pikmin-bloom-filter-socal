@@ -20,6 +20,10 @@ let categories = [];
 let active = new Set();
 let searchText = '';
 let lastScanLatLng = null;
+let cellBuckets = new Map();
+let decorToCells = new Map();
+const SOLVER_K = 3;
+const BUCKET_DEGREES = 0.002;
 
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
 const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Clothes Store', 'Makeup Store']);
@@ -136,6 +140,7 @@ async function loadDecorData() {
   const tileCollections = await Promise.all(tileIndex.tiles.map(t => fetch(`./data/cell-tiles/${t.path}`).then(r => r.json())));
   cellFeatures = tileCollections.flatMap(fc => fc.features);
   allFeatures = cellFeatures;
+  buildSpatialIndexes();
   categories = manifest.categories;
   active = new Set();
   $('total-count').textContent = `${cellFeatures.length.toLocaleString()} cells / ${manifest.featureCount.toLocaleString()} spots`;
@@ -157,6 +162,25 @@ function initBasemapOnly() {
   $('total-count').textContent = '0';
 }
 
+function bucketKey(lat, lon) {
+  return `${Math.floor(lat / BUCKET_DEGREES)},${Math.floor(lon / BUCKET_DEGREES)}`;
+}
+
+function buildSpatialIndexes() {
+  cellBuckets = new Map();
+  decorToCells = new Map();
+  for (const cell of cellFeatures) {
+    const [lon, lat] = cell.properties.center;
+    const key = bucketKey(lat, lon);
+    if (!cellBuckets.has(key)) cellBuckets.set(key, []);
+    cellBuckets.get(key).push(cell);
+    for (const decor of cell.properties.decors) {
+      if (!decorToCells.has(decor)) decorToCells.set(decor, []);
+      decorToCells.get(decor).push(cell);
+    }
+  }
+}
+
 function renderTargetOptions() {
   const options = categories.filter(c => c.count > 0).map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
   const selectA = $('target-decor');
@@ -168,7 +192,16 @@ function renderTargetOptions() {
 }
 
 function cellsWithinDetector(lat, lon) {
-  return cellFeatures.filter(c => {
+  const bx = Math.floor(lat / BUCKET_DEGREES);
+  const by = Math.floor(lon / BUCKET_DEGREES);
+  const candidates = [];
+  for (let dx = -2; dx <= 2; dx++) {
+    for (let dy = -2; dy <= 2; dy++) {
+      const bucket = cellBuckets.get(`${bx + dx},${by + dy}`);
+      if (bucket) candidates.push(...bucket);
+    }
+  }
+  return candidates.filter(c => {
     const [clon, clat] = c.properties.center;
     return metersBetween(lat, lon, clat, clon) <= 100;
   });
@@ -193,47 +226,69 @@ function scanDetector(latlng) {
     : 'No decor cells in range; likely Roadside-only.';
 }
 
+function scanAt(lat, lon) {
+  const cells = cellsWithinDetector(lat, lon);
+  const decors = new Set(cells.flatMap(c => c.properties.decors));
+  return { cells, decors };
+}
+
 function decorsAt(lat, lon) {
-  return new Set(cellsWithinDetector(lat, lon).flatMap(c => c.properties.decors));
+  return scanAt(lat, lon).decors;
 }
 
 function candidateIsPure(lat, lon, target) {
-  const decors = decorsAt(lat, lon);
+  const { decors } = scanAt(lat, lon);
   return decors.has(target) && [...decors].every(d => d === target);
 }
 
 function candidateContainsAll(lat, lon, targets) {
-  const decors = decorsAt(lat, lon);
+  const { decors } = scanAt(lat, lon);
   return targets.every(t => decors.has(t));
 }
 
-function searchCandidatePositions(seedCells, predicate) {
+function addCandidate(results, candidate, k) {
+  const existing = results.find(r => metersBetween(r.lat, r.lon, candidate.lat, candidate.lon) < 8);
+  if (existing) return;
+  results.push(candidate);
+  results.sort((a, b) => a.dist - b.dist);
+  if (results.length > k) results.length = k;
+}
+
+function searchCandidatePositions(seedCells, predicate, k = SOLVER_K) {
   const origin = lastScanLatLng || map.getCenter();
-  let best = null;
+  const results = [];
+  const visited = new Set();
   for (const cell of seedCells) {
     const [clon, clat] = cell.properties.center;
     for (let east = -100; east <= 100; east += 10) {
       for (let north = -100; north <= 100; north += 10) {
         if (Math.hypot(east, north) > 100) continue;
         const [lat, lon] = offsetMeters(clat, clon, east, north);
-        if (!predicate(lat, lon)) continue;
+        const key = `${lat.toFixed(5)},${lon.toFixed(5)}`;
+        if (visited.has(key)) continue;
+        visited.add(key);
+        const scan = scanAt(lat, lon);
+        if (!predicate(scan)) continue;
         const dist = metersBetween(origin.lat, origin.lng, lat, lon);
-        if (!best || dist < best.dist) best = { lat, lon, dist, decors: [...decorsAt(lat, lon)].sort() };
+        addCandidate(results, { lat, lon, dist, cells: scan.cells.length, decors: [...scan.decors].sort() }, k);
       }
     }
   }
-  return best;
+  return results;
 }
 
-function showSolverResult(best, label) {
-  if (!best) {
+function showSolverResults(results, label) {
+  if (!results.length) {
     $('solver-output').textContent = `No ${label} spot found in this dataset.`;
     return;
   }
   const before = lastScanLatLng;
+  const best = results[0];
   scanDetector(L.latLng(best.lat, best.lon));
   map.setView([best.lat, best.lon], Math.max(map.getZoom(), 17));
-  $('solver-output').innerHTML = `Closest ${label} spot: ${Math.round(best.dist)}m from ${before ? 'last scan' : 'map center'} · <a target="_blank" href="https://maps.google.com/?q=${best.lat},${best.lon}">open in Google Maps</a><br>Detector would include: ${best.decors.map(escapeHtml).join(', ')}`;
+  $('solver-output').innerHTML = `<strong>${results.length} closest ${label} spot(s)</strong> from ${before ? 'last scan' : 'map center'}:<ol>` +
+    results.map(r => `<li>${Math.round(r.dist)}m · ${r.cells} cells · <a target="_blank" href="https://maps.google.com/?q=${r.lat},${r.lon}">Google Maps</a><br><small>Includes: ${r.decors.map(escapeHtml).join(', ')}</small></li>`).join('') +
+    `</ol>`;
 }
 
 function selectedTargets() {
@@ -243,17 +298,19 @@ function selectedTargets() {
 function findPureTarget() {
   if (!cellFeatures.length) return;
   const target = $('target-decor').value;
-  const seedCells = cellFeatures.filter(c => c.properties.decors.includes(target));
-  const best = searchCandidatePositions(seedCells, (lat, lon) => candidateIsPure(lat, lon, target));
-  showSolverResult(best, `clean ${target}`);
+  const seedCells = decorToCells.get(target) || [];
+  const results = searchCandidatePositions(seedCells, (scan) => scan.decors.has(target) && [...scan.decors].every(d => d === target));
+  showSolverResults(results, `clean ${escapeHtml(target)}`);
 }
 
 function findComboTarget() {
   if (!cellFeatures.length) return;
   const targets = selectedTargets();
-  const seedCells = cellFeatures.filter(c => targets.some(t => c.properties.decors.includes(t)));
-  const best = searchCandidatePositions(seedCells, (lat, lon) => candidateContainsAll(lat, lon, targets));
-  showSolverResult(best, targets.map(t => escapeHtml(t)).join(' + '));
+  const seedCells = targets
+    .map(t => decorToCells.get(t) || [])
+    .sort((a, b) => a.length - b.length)[0] || [];
+  const results = searchCandidatePositions(seedCells, (scan) => targets.every(t => scan.decors.has(t)));
+  showSolverResults(results, targets.map(t => escapeHtml(t)).join(' + '));
 }
 
 function syncCheckboxes() {
