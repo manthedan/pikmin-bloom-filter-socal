@@ -14,6 +14,7 @@ window.addEventListener('resize', () => map.invalidateSize());
 
 const featureLayer = L.layerGroup().addTo(map);
 const detectorLayer = L.layerGroup().addTo(map);
+const userLayer = L.layerGroup().addTo(map);
 let allFeatures = [];
 let cellFeatures = [];
 let categories = [];
@@ -26,6 +27,8 @@ let tileIndex = null;
 let tileByKey = new Map();
 let loadedTileKeys = new Set();
 let decorDataReady = false;
+let loadDataPromise = null;
+let currentLocation = null;
 const SOLVER_K = 3;
 const BUCKET_DEGREES = 0.002;
 const INITIAL_TILE_PAD = 1;
@@ -204,6 +207,12 @@ async function loadTileRingAround(lat, lon, ring) {
 }
 
 async function loadDecorData() {
+  if (loadDataPromise) return loadDataPromise;
+  loadDataPromise = loadDecorDataInner();
+  return loadDataPromise;
+}
+
+async function loadDecorDataInner() {
   $('generated').textContent = 'Loading decor index…';
   const [manifest, loadedIndex] = await Promise.all([
     fetch('./data/manifest.json').then(r => r.json()),
@@ -225,8 +234,37 @@ function initBasemapOnly() {
   map.setView(COSTA_MESA_CENTER, 13);
   featureLayer.clearLayers();
   detectorLayer.clearLayers();
+  userLayer.clearLayers();
   $('visible-count').textContent = '0';
   $('total-count').textContent = '0';
+}
+
+function centerOnUser() {
+  if (!navigator.geolocation) {
+    $('generated').textContent = 'Geolocation is not available in this browser.';
+    return Promise.resolve(false);
+  }
+  $('generated').textContent = 'Requesting location…';
+  return new Promise(resolve => {
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      currentLocation = L.latLng(lat, lon);
+      userLayer.clearLayers();
+      L.circleMarker(currentLocation, { radius: 7, color: '#fff', weight: 2, fillColor: '#e53935', fillOpacity: 1 }).addTo(userLayer);
+      if (pos.coords.accuracy) {
+        L.circle(currentLocation, { radius: pos.coords.accuracy, color: '#e53935', weight: 1, fillOpacity: 0.05 }).addTo(userLayer);
+      }
+      map.setView(currentLocation, Math.max(map.getZoom(), 16));
+      lastScanLatLng = currentLocation;
+      if (decorDataReady) await loadTilesForCurrentView(INITIAL_TILE_PAD);
+      if (cellFeatures.length) scanDetector(currentLocation);
+      resolve(true);
+    }, err => {
+      $('generated').textContent = `Location unavailable: ${err.message}. Showing Costa Mesa.`;
+      resolve(false);
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  });
 }
 
 function bucketKey(lat, lon) {
@@ -398,7 +436,8 @@ function syncCheckboxes() {
 }
 
 $('search').addEventListener('input', (e) => { searchText = e.target.value.trim().toLowerCase(); draw(); });
-$('load-data').addEventListener('click', () => loadDecorData());
+$('locate-me').addEventListener('click', () => centerOnUser());
+$('load-data').addEventListener('click', () => loadDecorData().then(() => loadTilesForCurrentView(INITIAL_TILE_PAD)));
 $('core-view').addEventListener('click', () => { active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name)); syncCheckboxes(); draw(); });
 $('select-all').addEventListener('click', () => { active = new Set(categories.map(c => c.name)); syncCheckboxes(); draw(); });
 $('clear-all').addEventListener('click', () => { active.clear(); syncCheckboxes(); draw(); });
@@ -416,3 +455,4 @@ map.on('moveend', () => {
 });
 
 initBasemapOnly();
+centerOnUser().finally(() => loadDecorData());

@@ -22,16 +22,17 @@
 
     <div class="stats">
       <strong id="visible-count">0</strong> shown · <span id="total-count">0</span> total
-      <br><small id="generated">Basemap only. Decor data not loaded yet.</small>
+      <br><small id="generated">Starting map…</small>
     </div>
 
     <div class="actions">
-      <button id="load-data">Load decor data</button>
+      <button id="locate-me">Use my location</button>
+      <button id="load-data">Load nearby data</button>
       <button id="core-view">Starter spots</button>
       <button id="select-all">Select all</button>
       <button id="clear-all">Clear all</button>
     </div>
-    <p class="hint">First confirm the map tiles look normal. Then load decor data.</p>
+    <p class="hint">Decor cells load automatically around your current map view. Location is only used in your browser.</p>
 
     <section class="detector-panel">
       <h2>Detector simulator</h2>
@@ -64,6 +65,6 @@
   </main>
 
   <script src="./vendor/leaflet/leaflet.js"></script>
-  <script src="./app.js?v=10" type="module"></script>
+  <script src="./app.js?v=11" type="module"></script>
 </body>
 </html>
