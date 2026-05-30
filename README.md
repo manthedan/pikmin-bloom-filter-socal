@@ -2,7 +2,7 @@
 
 A fast, static, OSM-derived prototype for Pikmin Bloom detector planning in Orange County play areas.
 
-The app uses precomputed Geofabrik/OpenStreetMap data, approximate S2 level-17 decor cells, lazy-loaded static JSON chunks, and a 100m detector simulator.
+The app uses precomputed Geofabrik/OpenStreetMap data, approximate S2 level-17 decor cells, compact S2 parent level-11 JSON chunks, and a 100m detector simulator.
 
 ## Run locally
 
@@ -42,8 +42,8 @@ This downloads the Geofabrik SoCal `.osm.pbf`, extracts the OC play-area bbox, b
 
 - Region bbox: `[-118.06, 33.52, -117.66, 33.80]`
 - OSM decor candidate spots: `12,443`
-- Approximate S2 level-17 decor cells: `9,072`
-- Static z13 chunks: `73`
+- Approximate S2 level-17 decor cells: `22,825`
+- Static S2 parent level-11 chunks: `75`
 
 ## Notes
 

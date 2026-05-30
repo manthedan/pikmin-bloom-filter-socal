@@ -1,39 +1,98 @@
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { S2CellId, S2Cell, S2LatLng } from 'nodes2ts';
 
-const Z = Number(process.env.TILE_Z || 13);
-const IN = new URL('../public/data/decor-cells-l17.geojson', import.meta.url);
-const OUT_ROOT = new URL(`../public/data/cell-tiles/${Z}/`, import.meta.url);
+const CELL_LEVEL = Number(process.env.S2_LEVEL || 17);
+const PARENT_LEVEL = Number(process.env.S2_PARENT_LEVEL || 11);
+const IN = new URL(`../public/data/decor-cells-l${CELL_LEVEL}.geojson`, import.meta.url);
+const MANIFEST = new URL('../public/data/manifest.json', import.meta.url);
+const OUT_ROOT = new URL('../public/data/cell-tiles/', import.meta.url);
 const INDEX = new URL('../public/data/cell-tiles-index.json', import.meta.url);
 
-function lonLatToTile(lon, lat, z) {
-  const n = 2 ** z;
-  const x = Math.floor((lon + 180) / 360 * n);
-  const latRad = lat * Math.PI / 180;
-  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
-  return [x, y];
+function llFromPoint(p) {
+  const ll = S2LatLng.fromPoint(p);
+  return [Number(ll.lngDegrees.toFixed(7)), Number(ll.latDegrees.toFixed(7))];
 }
 
-const cells = JSON.parse(await readFile(IN, 'utf8'));
+function cellRing(token) {
+  const cell = new S2Cell(S2CellId.fromToken(token));
+  const ring = [0, 1, 2, 3].map(i => llFromPoint(cell.getVertex(i)));
+  ring.push(ring[0]);
+  return ring;
+}
+
+function bboxForRing(bbox, ring) {
+  for (const [lon, lat] of ring) {
+    bbox.minLng = Math.min(bbox.minLng, lon);
+    bbox.minLat = Math.min(bbox.minLat, lat);
+    bbox.maxLng = Math.max(bbox.maxLng, lon);
+    bbox.maxLat = Math.max(bbox.maxLat, lat);
+  }
+}
+
+function parentToken(token) {
+  return S2CellId.fromToken(token).parentL(PARENT_LEVEL).toToken();
+}
+
+function maskForDecors(decors, bitByDecor) {
+  let mask = 0;
+  for (const decor of decors) mask += 2 ** bitByDecor.get(decor);
+  return mask;
+}
+
+const [cells, manifest] = await Promise.all([
+  readFile(IN, 'utf8').then(JSON.parse),
+  readFile(MANIFEST, 'utf8').then(JSON.parse),
+]);
+const decorTypes = manifest.categories.filter(c => c.count > 0).map(c => c.name);
+const colorByDecor = Object.fromEntries(manifest.categories.map(c => [c.name, c.color]));
+const bitByDecor = new Map(decorTypes.map((name, i) => [name, i]));
+
 await rm(OUT_ROOT, { recursive: true, force: true });
 const buckets = new Map();
 for (const f of cells.features) {
-  const [lon, lat] = f.properties.center;
-  const [x, y] = lonLatToTile(lon, lat, Z);
-  const key = `${x}/${y}`;
-  if (!buckets.has(key)) buckets.set(key, []);
-  buckets.get(key).push(f);
+  const token = f.properties.token;
+  const p = parentToken(token);
+  if (!buckets.has(p)) {
+    buckets.set(p, {
+      parentToken: p,
+      bbox: { minLng: Infinity, minLat: Infinity, maxLng: -Infinity, maxLat: -Infinity },
+      cellLevel: CELL_LEVEL,
+      cellTokens: [],
+      decorMasks: [],
+      centers: [],
+      rings: [],
+      spotCounts: [],
+    });
+  }
+  const chunk = buckets.get(p);
+  const ring = cellRing(token);
+  bboxForRing(chunk.bbox, ring);
+  chunk.cellTokens.push(token);
+  chunk.decorMasks.push(maskForDecors(f.properties.decors, bitByDecor));
+  chunk.centers.push(f.properties.center.map(n => Number(n.toFixed(7))));
+  chunk.rings.push(ring);
+  chunk.spotCounts.push(f.properties.spotCount || 0);
 }
 
 const tiles = [];
-for (const [key, features] of buckets) {
-  const [x, y] = key.split('/');
-  const dir = new URL(`${x}/`, OUT_ROOT);
+for (const [parent, chunk] of buckets) {
+  const dir = new URL(`${parent.slice(0, 3)}/`, OUT_ROOT);
   await mkdir(dir, { recursive: true });
-  const rel = `${Z}/${x}/${y}.json`;
-  await writeFile(new URL(`${y}.json`, dir), JSON.stringify({ type: 'FeatureCollection', features }));
-  tiles.push({ z: Z, x: Number(x), y: Number(y), path: rel, count: features.length });
+  const path = `${parent.slice(0, 3)}/${parent}.json`;
+  await writeFile(new URL(`${parent}.json`, dir), JSON.stringify(chunk));
+  tiles.push({ parentToken: parent, path, count: chunk.cellTokens.length, bbox: chunk.bbox });
 }
 
-tiles.sort((a, b) => a.x - b.x || a.y - b.y);
-await writeFile(INDEX, JSON.stringify({ generatedAt: new Date().toISOString(), z: Z, tileCount: tiles.length, cellCount: cells.features.length, tiles }, null, 2));
-console.log(`Wrote ${cells.features.length} cells into ${tiles.length} z${Z} chunks`);
+tiles.sort((a, b) => a.parentToken.localeCompare(b.parentToken));
+await writeFile(INDEX, JSON.stringify({
+  generatedAt: new Date().toISOString(),
+  schemaVersion: 2,
+  s2CellLevel: CELL_LEVEL,
+  s2ChunkParentLevel: PARENT_LEVEL,
+  tileCount: tiles.length,
+  cellCount: cells.features.length,
+  decorTypes,
+  colorByDecor,
+  tiles,
+}, null, 2));
+console.log(`Wrote ${cells.features.length} cells into ${tiles.length} S2 parent L${PARENT_LEVEL} chunks`);

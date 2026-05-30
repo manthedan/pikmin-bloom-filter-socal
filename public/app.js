@@ -209,34 +209,55 @@ function renderFilters() {
   }
 }
 
-function lonLatToTile(lon, lat, z) {
-  const n = 2 ** z;
-  const x = Math.floor((lon + 180) / 360 * n);
-  const latRad = lat * Math.PI / 180;
-  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
-  return [x, y];
+function tileBboxIntersectsBounds(tile, bounds, pad = 0) {
+  const latPad = 0.01 * pad;
+  const lonPad = 0.01 * pad;
+  const b = tile.bbox;
+  return b.minLng <= bounds.getEast() + lonPad && b.maxLng >= bounds.getWest() - lonPad &&
+    b.minLat <= bounds.getNorth() + latPad && b.maxLat >= bounds.getSouth() - latPad;
 }
 
-function tileRangeForBounds(bounds, pad = 0) {
-  const z = tileIndex.z;
-  const [minX, maxY] = lonLatToTile(bounds.getWest(), bounds.getSouth(), z);
-  const [maxX, minY] = lonLatToTile(bounds.getEast(), bounds.getNorth(), z);
-  const keys = [];
-  for (let x = minX - pad; x <= maxX + pad; x++) {
-    for (let y = minY - pad; y <= maxY + pad; y++) keys.push(`${x}/${y}`);
+function tileKeysForBounds(bounds, pad = 0) {
+  return tileIndex.tiles.filter(t => tileBboxIntersectsBounds(t, bounds, pad)).map(t => t.parentToken);
+}
+
+function maskToDecors(mask) {
+  const decors = [];
+  for (let i = 0; i < tileIndex.decorTypes.length; i++) {
+    if (mask & (2 ** i)) decors.push(tileIndex.decorTypes[i]);
   }
-  return keys;
+  return decors;
+}
+
+function compactChunkToFeatures(chunk) {
+  return chunk.cellTokens.map((token, i) => {
+    const decors = maskToDecors(chunk.decorMasks[i] || 0);
+    return {
+      type: 'Feature',
+      id: token,
+      geometry: { type: 'Polygon', coordinates: [chunk.rings[i]] },
+      properties: {
+        token,
+        level: chunk.cellLevel,
+        center: chunk.centers[i],
+        decors,
+        colorByDecor: Object.fromEntries(decors.map(d => [d, tileIndex.colorByDecor[d] || '#334d2f'])),
+        spotCount: chunk.spotCounts?.[i] || 0,
+        spots: [],
+      },
+    };
+  });
 }
 
 async function loadTileKeys(keys) {
   const wanted = [...new Set(keys)].filter(key => tileByKey.has(key) && !loadedTileKeys.has(key));
   if (!wanted.length) return 0;
   $('generated').textContent = `Loading ${wanted.length} nearby chunk(s)…`;
-  const collections = await Promise.all(wanted.map(key => fetch(`./data/cell-tiles/${tileByKey.get(key).path}`).then(r => r.json())));
+  const chunks = await Promise.all(wanted.map(key => fetch(`./data/cell-tiles/${tileByKey.get(key).path}`).then(r => r.json())));
   const seen = new Set(cellFeatures.map(f => f.properties.token));
   let added = 0;
-  for (const fc of collections) {
-    for (const f of fc.features) {
+  for (const chunk of chunks) {
+    for (const f of compactChunkToFeatures(chunk)) {
       if (seen.has(f.properties.token)) continue;
       seen.add(f.properties.token);
       cellFeatures.push(f);
@@ -254,20 +275,22 @@ async function loadTileKeys(keys) {
 
 async function loadTilesForCurrentView(pad = INITIAL_TILE_PAD) {
   if (!tileIndex) return 0;
-  return loadTileKeys(tileRangeForBounds(map.getBounds(), pad));
+  return loadTileKeys(tileKeysForBounds(map.getBounds(), pad));
 }
 
 async function loadTileRingAround(lat, lon, ring) {
   if (!tileIndex) return 0;
-  const [cx, cy] = lonLatToTile(lon, lat, tileIndex.z);
-  const keys = [];
-  for (let dx = -ring; dx <= ring; dx++) {
-    for (let dy = -ring; dy <= ring; dy++) {
-      if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
-      keys.push(`${cx + dx}/${cy + dy}`);
-    }
-  }
-  return loadTileKeys(keys);
+  const unloaded = tileIndex.tiles
+    .filter(t => !loadedTileKeys.has(t.parentToken))
+    .map(t => ({
+      tile: t,
+      dist: metersBetween(lat, lon, (t.bbox.minLat + t.bbox.maxLat) / 2, (t.bbox.minLng + t.bbox.maxLng) / 2),
+      contains: t.bbox.minLng <= lon && t.bbox.maxLng >= lon && t.bbox.minLat <= lat && t.bbox.maxLat >= lat,
+    }))
+    .sort((a, b) => (b.contains - a.contains) || a.dist - b.dist);
+  const batchSize = ring === 0 ? 1 : 8;
+  const start = ring === 0 ? 0 : 1 + (ring - 1) * batchSize;
+  return loadTileKeys(unloaded.slice(start, start + batchSize).map(t => t.tile.parentToken));
 }
 
 async function loadDecorData() {
@@ -283,7 +306,7 @@ async function loadDecorDataInner() {
     fetch('./data/cell-tiles-index.json').then(r => r.json()),
   ]);
   tileIndex = loadedIndex;
-  tileByKey = new Map(tileIndex.tiles.map(t => [`${t.x}/${t.y}`, t]));
+  tileByKey = new Map(tileIndex.tiles.map(t => [t.parentToken, t]));
   categories = manifest.categories;
   active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name));
   decorDataReady = true;
@@ -508,7 +531,7 @@ $('clear-all').addEventListener('click', () => { active.clear(); syncCheckboxes(
 $('find-pure').addEventListener('click', () => findPureTarget());
 $('find-combo').addEventListener('click', () => findComboTarget());
 map.on('click', async (e) => {
-  if (decorDataReady) await loadTileKeys(tileRangeForBounds(L.latLngBounds(e.latlng, e.latlng), DETECTOR_TILE_PAD));
+  if (decorDataReady) await loadTileKeys(tileKeysForBounds(L.latLngBounds(e.latlng, e.latlng), DETECTOR_TILE_PAD));
   scanDetector(e.latlng);
 });
 let moveLoadTimer = null;

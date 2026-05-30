@@ -5,6 +5,8 @@ import { point } from '@turf/helpers';
 
 const LEVEL = Number(process.env.S2_LEVEL || 17);
 const POLYGON_SAMPLE_METERS = Number(process.env.POLYGON_SAMPLE_METERS || 35);
+const LINE_SAMPLE_METERS = Number(process.env.LINE_SAMPLE_METERS || 25);
+const WATERSIDE_LINE_BUFFER_METERS = Number(process.env.WATERSIDE_LINE_BUFFER_METERS || 35);
 const IN = new URL('../public/data/decor-spots.geojson', import.meta.url);
 const OUT = new URL(`../public/data/decor-cells-l${LEVEL}.geojson`, import.meta.url);
 
@@ -47,6 +49,20 @@ function metersToLonDegrees(m, lat) {
   return m / (111320 * Math.max(0.2, Math.cos(lat * Math.PI / 180)));
 }
 
+function lonLatToMeters(lon, lat, refLat) {
+  return [lon * 111320 * Math.cos(refLat * Math.PI / 180), lat * 111320];
+}
+
+function metersToLonLat(x, y, refLat) {
+  return [x / (111320 * Math.cos(refLat * Math.PI / 180)), y / 111320];
+}
+
+function lineStringsOfGeometry(geometry) {
+  if (geometry.type === 'LineString') return [geometry.coordinates];
+  if (geometry.type === 'MultiLineString') return geometry.coordinates;
+  return [];
+}
+
 const spots = JSON.parse(await readFile(IN, 'utf8'));
 const cells = new Map();
 
@@ -71,6 +87,32 @@ function addCellForFeature(f, lon, lat) {
   }
   if (c.spots.length < 80 && !c.spots.some(s => s.id === f.id)) {
     c.spots.push({ id: f.id, name: f.properties.name, decors: f.properties.decors, center: f.properties.center });
+  }
+}
+
+function addLineBufferedCells(f, bufferMeters) {
+  for (const line of lineStringsOfGeometry(f.geometry)) {
+    for (let i = 1; i < line.length; i++) {
+      const [lon1, lat1] = line[i - 1];
+      const [lon2, lat2] = line[i];
+      const refLat = (lat1 + lat2) / 2;
+      const [x1, y1] = lonLatToMeters(lon1, lat1, refLat);
+      const [x2, y2] = lonLatToMeters(lon2, lat2, refLat);
+      const dx = x2 - x1, dy = y2 - y1;
+      const len = Math.hypot(dx, dy);
+      if (!len) continue;
+      const nx = -dy / len, ny = dx / len;
+      const steps = Math.max(1, Math.ceil(len / LINE_SAMPLE_METERS));
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        const bx = x1 + dx * t;
+        const by = y1 + dy * t;
+        for (let off = -bufferMeters; off <= bufferMeters; off += LINE_SAMPLE_METERS) {
+          const [lon, lat] = metersToLonLat(bx + nx * off, by + ny * off, refLat);
+          addCellForFeature(f, lon, lat);
+        }
+      }
+    }
   }
 }
 
@@ -106,6 +148,8 @@ for (const f of spots.features) {
   if (!f.geometry) continue;
   if (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon') {
     addPolygonCells(f);
+  } else if ((f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString') && f.properties.decors.includes('Waterside')) {
+    addLineBufferedCells(f, WATERSIDE_LINE_BUFFER_METERS);
   } else {
     const [lon, lat] = f.properties.center || f.geometry.coordinates;
     addCellForFeature(f, lon, lat);
@@ -135,6 +179,8 @@ const out = {
   detectorRadiusMeters: 100,
   s2Level: LEVEL,
   polygonSampleMeters: POLYGON_SAMPLE_METERS,
+  lineSampleMeters: LINE_SAMPLE_METERS,
+  watersideLineBufferMeters: WATERSIDE_LINE_BUFFER_METERS,
   features,
 };
 
