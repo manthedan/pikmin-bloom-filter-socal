@@ -221,7 +221,7 @@ async function loadDecorDataInner() {
   tileIndex = loadedIndex;
   tileByKey = new Map(tileIndex.tiles.map(t => [`${t.x}/${t.y}`, t]));
   categories = manifest.categories;
-  active = new Set();
+  active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name));
   decorDataReady = true;
   $('generated').textContent = `Generated ${new Date(manifest.generatedAt).toLocaleString()} · ${tileIndex.tileCount} chunks available`;
   renderFilters();
