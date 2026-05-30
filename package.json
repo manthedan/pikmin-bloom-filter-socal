@@ -11,7 +11,9 @@
     "build:cells": "node scripts/build-cells.mjs",
     "build": "npm run build:geofabrik",
     "build:geofabrik": "node scripts/build-geofabrik.mjs && npm run build:cells && npm run build:tiles",
-    "build:tiles": "node scripts/build-cell-tiles.mjs"
+    "build:tiles": "node scripts/build-cell-tiles.mjs",
+    "netlify:build": "node scripts/validate-static-export.mjs",
+    "export": "node scripts/validate-static-export.mjs"
   },
   "keywords": [],
   "author": "",

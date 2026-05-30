@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Costa Mesa Pikmin Decor Map</title>
+  <title>OC Pikmin Detector Map</title>
   <link rel="stylesheet" href="./vendor/leaflet/leaflet.css" />
   <link rel="stylesheet" href="./styles.css?v=5" />
 </head>
 <body>
   <aside id="sidebar">
     <header>
-      <div class="eyebrow">Static OSM-derived prototype</div>
-      <h1>Costa Mesa Decor Map</h1>
-      <p>Fast local candidates for Pikmin Bloom decor. Unofficial; in-game results can differ.</p>
+      <div class="eyebrow">Unofficial detector planner</div>
+      <h1>OC Pikmin Detector</h1>
+      <p>Find nearby spots whose 100m detector scan includes the decor you want.</p>
     </header>
 
     <label class="search-label">
@@ -21,21 +21,24 @@
     </label>
 
     <div class="stats">
-      <strong id="visible-count">0</strong> shown · <span id="total-count">0</span> total
-      <br><small id="generated">Starting map…</small>
+      <div><strong id="visible-count">0</strong> shown</div>
+      <div><span id="total-count">0</span></div>
+      <small id="generated">Starting map…</small>
     </div>
 
-    <div class="actions">
-      <button id="locate-me">Use my location</button>
+    <div class="actions primary-actions">
+      <button id="locate-me" class="primary">Use my location</button>
       <button id="load-data">Load nearby data</button>
+    </div>
+    <div class="actions utility-actions">
       <button id="core-view">Starter spots</button>
-      <button id="select-all">Select all</button>
-      <button id="clear-all">Clear all</button>
+      <button id="clear-all">Clear map</button>
+      <button id="select-all" class="danger">Select all</button>
     </div>
     <p class="hint">Decor cells load automatically around your current map view. Location is only used in your browser.</p>
 
-    <section class="detector-panel">
-      <h2>Detector simulator</h2>
+    <section class="detector-panel card">
+      <h2>Detector solver</h2>
       <p class="hint">Click the map to simulate a 100m detector scan. Approximate S2 level 17 cells.</p>
       <div id="detector-output">No scan yet.</div>
       <label class="search-label">
@@ -46,16 +49,19 @@
         Target decor B optional
         <select id="target-decor-2"></select>
       </label>
-      <button id="find-pure">Find 3 closest clean target spots</button>
-      <button id="find-combo">Find 3 closest spots containing selected decors</button>
+      <button id="find-combo" class="primary wide">Find 3 closest matching spots</button>
+      <button id="find-pure" class="wide">Find 3 clean target-only spots</button>
       <div id="solver-output"></div>
     </section>
 
-    <section id="filters" aria-label="Decor filters"></section>
+    <details class="card filter-panel">
+      <summary>Decor overlay filters</summary>
+      <section id="filters" aria-label="Decor filters"></section>
+    </details>
 
-    <details>
+    <details class="card">
       <summary>How this works</summary>
-      <p>Build script queries OSM/Overpass once for Costa Mesa, maps tags to decor categories, and writes static GeoJSON. The app only reads local files, so browsing is fast.</p>
+      <p>Build script extracts Geofabrik/OpenStreetMap data for OC play areas, maps tags to approximate decor categories, converts candidates to S2-like cells, and writes static chunks.</p>
       <p>Attribution: © OpenStreetMap contributors.</p>
     </details>
   </aside>
@@ -65,6 +71,6 @@
   </main>
 
   <script src="./vendor/leaflet/leaflet.js"></script>
-  <script src="./app.js?v=11" type="module"></script>
+  <script src="./app.js?v=12" type="module"></script>
 </body>
 </html>
