@@ -34,7 +34,7 @@ export const DECOR_MAPPINGS = [
   { name: 'Post Office', color: '#0984e3', tags: ['amenity=post_office'] },
   { name: 'University College', color: '#2d3436', tags: ['amenity=university', 'amenity=college'] },
 
-  { name: 'Park', color: '#00b894', tags: ['leisure=park', 'leisure=playground'] },
+  { name: 'Park', color: '#00b894', tags: ['leisure=park', 'leisure=garden', 'leisure=playground', 'leisure=common', 'landuse=recreation_ground', 'landuse=grass'] },
   { name: 'Forest', color: '#228b22', tags: ['landuse=forest', 'natural=wood'] },
   { name: 'Waterside', color: '#00a8ff', tags: ['natural=water', 'waterway=river', 'waterway=stream', 'waterway=canal'] },
   { name: 'Beach', color: '#f1c40f', tags: ['natural=beach'] },
