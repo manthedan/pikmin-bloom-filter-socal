@@ -1,238 +1,238 @@
 {
-  "generatedAt": "2026-05-31T17:00:07.213Z",
+  "generatedAt": "2026-05-31T17:30:23.266Z",
   "source": "https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf",
-  "region": "oc-play-areas",
+  "region": "la-oc-play-areas",
   "bbox": [
-    -118.06,
+    -118.7,
     33.52,
     -117.66,
-    33.8
+    34.35
   ],
-  "featureCount": 16191,
+  "featureCount": 100825,
   "counts": {
-    "Restaurant": 1223,
-    "Cafe": 388,
-    "Sweetshop": 41,
-    "Bakery": 57,
-    "Burger Place": 236,
-    "Sushi Restaurant": 52,
-    "Italian Restaurant": 212,
-    "Mexican Restaurant": 277,
-    "Ramen Restaurant": 106,
-    "Curry Restaurant": 19,
-    "Corner Store": 206,
-    "Supermarket": 186,
-    "Pharmacy": 111,
-    "Makeup Store": 326,
-    "Clothes Store": 439,
-    "Hair Salon": 163,
-    "Appliances Store": 46,
-    "Diy Store": 35,
-    "Movie Theater": 19,
-    "Library Bookstore": 67,
-    "Art Gallery": 40,
-    "Hotel": 207,
-    "Post Office": 66,
-    "University College": 26,
-    "Park": 5550,
-    "Forest": 73,
-    "Waterside": 979,
-    "Beach": 45,
-    "Mountain": 6,
-    "Zoo": 3,
-    "Theme Park": 4,
-    "Airport": 1,
-    "Station": 8,
-    "Bus Stop": 3456,
-    "Bridge": 1963,
-    "Stadium": 21,
-    "Fortune": 7
+    "Restaurant": 8067,
+    "Cafe": 2564,
+    "Sweetshop": 230,
+    "Bakery": 442,
+    "Burger Place": 1767,
+    "Sushi Restaurant": 377,
+    "Italian Restaurant": 1534,
+    "Mexican Restaurant": 1800,
+    "Ramen Restaurant": 849,
+    "Curry Restaurant": 142,
+    "Corner Store": 1594,
+    "Supermarket": 1166,
+    "Pharmacy": 818,
+    "Makeup Store": 2106,
+    "Clothes Store": 1945,
+    "Hair Salon": 1152,
+    "Appliances Store": 196,
+    "Diy Store": 248,
+    "Movie Theater": 169,
+    "Library Bookstore": 543,
+    "Art Gallery": 432,
+    "Hotel": 2351,
+    "Post Office": 508,
+    "University College": 225,
+    "Park": 25716,
+    "Forest": 1504,
+    "Waterside": 7774,
+    "Beach": 125,
+    "Mountain": 271,
+    "Zoo": 8,
+    "Theme Park": 21,
+    "Airport": 19,
+    "Station": 184,
+    "Bus Stop": 22508,
+    "Bridge": 14741,
+    "Stadium": 107,
+    "Fortune": 55
   },
   "categories": [
     {
       "name": "Restaurant",
       "color": "#e74c3c",
-      "count": 1223
+      "count": 8067
     },
     {
       "name": "Cafe",
       "color": "#8b5a2b",
-      "count": 388
+      "count": 2564
     },
     {
       "name": "Sweetshop",
       "color": "#ff69b4",
-      "count": 41
+      "count": 230
     },
     {
       "name": "Bakery",
       "color": "#d99b44",
-      "count": 57
+      "count": 442
     },
     {
       "name": "Burger Place",
       "color": "#f39c12",
-      "count": 236
+      "count": 1767
     },
     {
       "name": "Sushi Restaurant",
       "color": "#1abc9c",
-      "count": 52
+      "count": 377
     },
     {
       "name": "Italian Restaurant",
       "color": "#27ae60",
-      "count": 212
+      "count": 1534
     },
     {
       "name": "Mexican Restaurant",
       "color": "#c0392b",
-      "count": 277
+      "count": 1800
     },
     {
       "name": "Ramen Restaurant",
       "color": "#e67e22",
-      "count": 106
+      "count": 849
     },
     {
       "name": "Curry Restaurant",
       "color": "#d35400",
-      "count": 19
+      "count": 142
     },
     {
       "name": "Corner Store",
       "color": "#3498db",
-      "count": 206
+      "count": 1594
     },
     {
       "name": "Supermarket",
       "color": "#2ecc71",
-      "count": 186
+      "count": 1166
     },
     {
       "name": "Pharmacy",
       "color": "#16a085",
-      "count": 111
+      "count": 818
     },
     {
       "name": "Makeup Store",
       "color": "#e84393",
-      "count": 326
+      "count": 2106
     },
     {
       "name": "Clothes Store",
       "color": "#9b59b6",
-      "count": 439
+      "count": 1945
     },
     {
       "name": "Hair Salon",
       "color": "#a0522d",
-      "count": 163
+      "count": 1152
     },
     {
       "name": "Appliances Store",
       "color": "#34495e",
-      "count": 46
+      "count": 196
     },
     {
       "name": "Diy Store",
       "color": "#7f8c8d",
-      "count": 35
+      "count": 248
     },
     {
       "name": "Movie Theater",
       "color": "#8e44ad",
-      "count": 19
+      "count": 169
     },
     {
       "name": "Library Bookstore",
       "color": "#6c5ce7",
-      "count": 67
+      "count": 543
     },
     {
       "name": "Art Gallery",
       "color": "#00cec9",
-      "count": 40
+      "count": 432
     },
     {
       "name": "Hotel",
       "color": "#fd79a8",
-      "count": 207
+      "count": 2351
     },
     {
       "name": "Post Office",
       "color": "#0984e3",
-      "count": 66
+      "count": 508
     },
     {
       "name": "University College",
       "color": "#2d3436",
-      "count": 26
+      "count": 225
     },
     {
       "name": "Park",
       "color": "#00b894",
-      "count": 5550
+      "count": 25716
     },
     {
       "name": "Forest",
       "color": "#228b22",
-      "count": 73
+      "count": 1504
     },
     {
       "name": "Waterside",
       "color": "#00a8ff",
-      "count": 979
+      "count": 7774
     },
     {
       "name": "Beach",
       "color": "#f1c40f",
-      "count": 45
+      "count": 125
     },
     {
       "name": "Mountain",
       "color": "#636e72",
-      "count": 6
+      "count": 271
     },
     {
       "name": "Zoo",
       "color": "#55efc4",
-      "count": 3
+      "count": 8
     },
     {
       "name": "Theme Park",
       "color": "#fab1a0",
-      "count": 4
+      "count": 21
     },
     {
       "name": "Airport",
       "color": "#74b9ff",
-      "count": 1
+      "count": 19
     },
     {
       "name": "Station",
       "color": "#2c3e50",
-      "count": 8
+      "count": 184
     },
     {
       "name": "Bus Stop",
       "color": "#fdcb6e",
-      "count": 3456
+      "count": 22508
     },
     {
       "name": "Bridge",
       "color": "#b2bec3",
-      "count": 1963
+      "count": 14741
     },
     {
       "name": "Stadium",
       "color": "#d63031",
-      "count": 21
+      "count": 107
     },
     {
       "name": "Fortune",
       "color": "#f368e0",
-      "count": 7
+      "count": 55
     }
   ]
 }

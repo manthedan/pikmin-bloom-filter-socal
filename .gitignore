@@ -2,4 +2,6 @@ node_modules/
 .DS_Store
 data/osm/*.osm.pbf
 data/osm/*.raw.geojson
+public/data/decor-spots.geojson
+public/data/decor-cells-l17.geojson
 tmp/
