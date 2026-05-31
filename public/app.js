@@ -34,6 +34,7 @@ const BUCKET_DEGREES = 0.002;
 const INITIAL_TILE_PAD = 1;
 const DETECTOR_TILE_PAD = 1;
 const MAX_SOLVER_TILE_RING = 5;
+const SOLVER_EXCLUDED_DECORS = new Set(['Park', 'Waterside', 'Roadside']);
 
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
 const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Clothes Store', 'Makeup Store']);
@@ -374,12 +375,13 @@ function buildSpatialIndexes() {
 }
 
 function renderTargetOptions() {
-  const options = categories.filter(c => c.count > 0).map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
+  const solverCategories = categories.filter(c => c.count > 0 && !SOLVER_EXCLUDED_DECORS.has(c.name));
+  const options = solverCategories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
   const selectA = $('target-decor');
   const selectB = $('target-decor-2');
   selectA.innerHTML = options;
   selectB.innerHTML = `<option value="">— none —</option>${options}`;
-  selectA.value = categories.find(c => c.name === 'Sushi Restaurant') ? 'Sushi Restaurant' : categories.find(c => c.count > 0)?.name || '';
+  selectA.value = solverCategories.find(c => c.name === 'Sushi Restaurant')?.name || solverCategories[0]?.name || '';
   selectB.value = '';
 }
 
@@ -501,6 +503,10 @@ async function expandSearchUntilEnough(getSeedCells, predicate) {
 async function findPureTarget() {
   if (!decorDataReady) return;
   const target = $('target-decor').value;
+  if (!target) {
+    $('solver-output').textContent = 'Choose a target decor first.';
+    return;
+  }
   const results = await expandSearchUntilEnough(
     () => decorToCells.get(target) || [],
     (scan) => scan.decors.has(target) && [...scan.decors].every(d => d === target)
@@ -511,6 +517,10 @@ async function findPureTarget() {
 async function findComboTarget() {
   if (!decorDataReady) return;
   const targets = selectedTargets();
+  if (!targets.length) {
+    $('solver-output').textContent = 'Choose a target decor first.';
+    return;
+  }
   const getSeedCells = () => targets
     .map(t => decorToCells.get(t) || [])
     .sort((a, b) => a.length - b.length)[0] || [];
