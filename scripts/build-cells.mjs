@@ -63,6 +63,18 @@ function lineStringsOfGeometry(geometry) {
   return [];
 }
 
+function samePosition(a, b) {
+  return Array.isArray(a) && Array.isArray(b) && Math.abs(a[0] - b[0]) < 1e-9 && Math.abs(a[1] - b[1]) < 1e-9;
+}
+
+function isClosedLineString(geometry) {
+  return geometry.type === 'LineString' && geometry.coordinates.length >= 4 && samePosition(geometry.coordinates[0], geometry.coordinates.at(-1));
+}
+
+function asPolygonFeature(f) {
+  return { ...f, geometry: { type: 'Polygon', coordinates: [f.geometry.coordinates] } };
+}
+
 const spots = JSON.parse(await readFile(IN, 'utf8'));
 const cells = new Map();
 
@@ -148,6 +160,8 @@ for (const f of spots.features) {
   if (!f.geometry) continue;
   if (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon') {
     addPolygonCells(f);
+  } else if (isClosedLineString(f.geometry)) {
+    addPolygonCells(asPolygonFeature(f));
   } else if ((f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString') && f.properties.decors.includes('Waterside')) {
     addLineBufferedCells(f, WATERSIDE_LINE_BUFFER_METERS);
   } else {
