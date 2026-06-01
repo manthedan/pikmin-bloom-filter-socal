@@ -23,7 +23,7 @@ function buildOverpassQueryForDecor(decor) {
     }).join('');
     lines.push(`nwr${predicates}(${bbox});`);
   }
-  return `[out:json][timeout:45];\n(\n  ${lines.join('\n  ')}\n);\nout center tags qt;`;
+  return `[out:json][timeout:45];\n(\n  ${lines.join('\n  ')}\n);\nout geom center tags qt;`;
 }
 
 async function fetchOverpass(query) {
