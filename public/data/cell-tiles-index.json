@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-31T17:30:31.814Z",
+  "generatedAt": "2026-06-01T00:27:34.988Z",
   "schemaVersion": 2,
   "s2CellLevel": 17,
   "s2ChunkParentLevel": 11,
   "tileCount": 399,
-  "cellCount": 246388,
+  "cellCount": 234377,
   "decorTypes": [
     "Restaurant",
     "Cafe",
@@ -120,7 +120,7 @@
     {
       "parentToken": "80c282c",
       "path": "80c/80c282c.json",
-      "count": 623,
+      "count": 608,
       "bbox": {
         "minLng": -118.6731465,
         "minLat": 34.2552813,
@@ -131,7 +131,7 @@
     {
       "parentToken": "80c2834",
       "path": "80c/80c2834.json",
-      "count": 1007,
+      "count": 995,
       "bbox": {
         "minLng": -118.626479,
         "minLat": 34.2591708,
@@ -142,7 +142,7 @@
     {
       "parentToken": "80c283c",
       "path": "80c/80c283c.json",
-      "count": 630,
+      "count": 627,
       "bbox": {
         "minLng": -118.626479,
         "minLat": 34.2990385,
@@ -153,7 +153,7 @@
     {
       "parentToken": "80c2844",
       "path": "80c/80c2844.json",
-      "count": 1465,
+      "count": 1463,
       "bbox": {
         "minLng": -118.5797981,
         "minLat": 34.3114435,
@@ -164,7 +164,7 @@
     {
       "parentToken": "80c284c",
       "path": "80c/80c284c.json",
-      "count": 961,
+      "count": 946,
       "bbox": {
         "minLng": -118.5797981,
         "minLat": 34.2709937,
@@ -175,7 +175,7 @@
     {
       "parentToken": "80c2854",
       "path": "80c/80c2854.json",
-      "count": 1090,
+      "count": 1075,
       "bbox": {
         "minLng": -118.5331038,
         "minLat": 34.2824679,
@@ -186,7 +186,7 @@
     {
       "parentToken": "80c285c",
       "path": "80c/80c285c.json",
-      "count": 456,
+      "count": 453,
       "bbox": {
         "minLng": -118.5331038,
         "minLat": 34.3223513,
@@ -219,7 +219,7 @@
     {
       "parentToken": "80c28dc",
       "path": "80c/80c28dc.json",
-      "count": 680,
+      "count": 679,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 34.3200417,
@@ -230,7 +230,7 @@
     {
       "parentToken": "80c28e4",
       "path": "80c/80c28e4.json",
-      "count": 1292,
+      "count": 1269,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 34.3058806,
@@ -263,7 +263,7 @@
     {
       "parentToken": "80c28fc",
       "path": "80c/80c28fc.json",
-      "count": 1127,
+      "count": 1089,
       "bbox": {
         "minLng": -118.4863963,
         "minLat": 34.2939065,
@@ -274,7 +274,7 @@
     {
       "parentToken": "80c2904",
       "path": "80c/80c2904.json",
-      "count": 791,
+      "count": 690,
       "bbox": {
         "minLng": -118.4863963,
         "minLat": 34.2533448,
@@ -285,7 +285,7 @@
     {
       "parentToken": "80c290c",
       "path": "80c/80c290c.json",
-      "count": 724,
+      "count": 565,
       "bbox": {
         "minLng": -118.4863963,
         "minLat": 34.2122261,
@@ -296,7 +296,7 @@
     {
       "parentToken": "80c2914",
       "path": "80c/80c2914.json",
-      "count": 703,
+      "count": 673,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 34.2257447,
@@ -307,7 +307,7 @@
     {
       "parentToken": "80c291c",
       "path": "80c/80c291c.json",
-      "count": 633,
+      "count": 588,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 34.2643067,
@@ -318,7 +318,7 @@
     {
       "parentToken": "80c2924",
       "path": "80c/80c2924.json",
-      "count": 726,
+      "count": 723,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 34.2768953,
@@ -340,7 +340,7 @@
     {
       "parentToken": "80c2934",
       "path": "80c/80c2934.json",
-      "count": 894,
+      "count": 868,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 34.2493365,
@@ -351,7 +351,7 @@
     {
       "parentToken": "80c293c",
       "path": "80c/80c293c.json",
-      "count": 739,
+      "count": 728,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 34.2355785,
@@ -362,7 +362,7 @@
     {
       "parentToken": "80c2944",
       "path": "80c/80c2944.json",
-      "count": 475,
+      "count": 444,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 34.1973492,
@@ -373,7 +373,7 @@
     {
       "parentToken": "80c294c",
       "path": "80c/80c294c.json",
-      "count": 629,
+      "count": 619,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 34.2066168,
@@ -384,18 +384,18 @@
     {
       "parentToken": "80c2954",
       "path": "80c/80c2954.json",
-      "count": 678,
+      "count": 599,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 34.1677201,
-        "maxLng": -118.299435,
+        "maxLng": -118.3008964,
         "maxLat": 34.2159553
       }
     },
     {
       "parentToken": "80c295c",
       "path": "80c/80c295c.json",
-      "count": 685,
+      "count": 621,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 34.1538009,
@@ -406,7 +406,7 @@
     {
       "parentToken": "80c2964",
       "path": "80c/80c2964.json",
-      "count": 627,
+      "count": 564,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 34.1459109,
@@ -417,7 +417,7 @@
     {
       "parentToken": "80c296c",
       "path": "80c/80c296c.json",
-      "count": 619,
+      "count": 575,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 34.1858772,
@@ -428,7 +428,7 @@
     {
       "parentToken": "80c2974",
       "path": "80c/80c2974.json",
-      "count": 919,
+      "count": 848,
       "bbox": {
         "minLng": -118.4863963,
         "minLat": 34.1708072,
@@ -439,7 +439,7 @@
     {
       "parentToken": "80c297c",
       "path": "80c/80c297c.json",
-      "count": 743,
+      "count": 695,
       "bbox": {
         "minLng": -118.4863963,
         "minLat": 34.1403935,
@@ -450,7 +450,7 @@
     {
       "parentToken": "80c2984",
       "path": "80c/80c2984.json",
-      "count": 646,
+      "count": 635,
       "bbox": {
         "minLng": -118.5331038,
         "minLat": 34.1181411,
@@ -461,7 +461,7 @@
     {
       "parentToken": "80c298c",
       "path": "80c/80c298c.json",
-      "count": 895,
+      "count": 837,
       "bbox": {
         "minLng": -118.5797981,
         "minLat": 34.1099181,
@@ -472,21 +472,21 @@
     {
       "parentToken": "80c2994",
       "path": "80c/80c2994.json",
-      "count": 839,
+      "count": 796,
       "bbox": {
         "minLng": -118.5797981,
         "minLat": 34.1478507,
         "maxLng": -118.5331038,
-        "maxLat": 34.199325
+        "maxLat": 34.1980484
       }
     },
     {
       "parentToken": "80c299c",
       "path": "80c/80c299c.json",
-      "count": 1495,
+      "count": 1443,
       "bbox": {
         "minLng": -118.5331038,
-        "minLat": 34.1590185,
+        "minLat": 34.1596571,
         "maxLng": -118.4863963,
         "maxLat": 34.2116737
       }
@@ -494,7 +494,7 @@
     {
       "parentToken": "80c29a4",
       "path": "80c/80c29a4.json",
-      "count": 668,
+      "count": 646,
       "bbox": {
         "minLng": -118.5331038,
         "minLat": 34.2008855,
@@ -505,7 +505,7 @@
     {
       "parentToken": "80c29ac",
       "path": "80c/80c29ac.json",
-      "count": 661,
+      "count": 599,
       "bbox": {
         "minLng": -118.5331038,
         "minLat": 34.2407204,
@@ -516,18 +516,18 @@
     {
       "parentToken": "80c29b4",
       "path": "80c/80c29b4.json",
-      "count": 765,
+      "count": 716,
       "bbox": {
         "minLng": -118.5797981,
         "minLat": 34.2309335,
         "maxLng": -118.5331038,
-        "maxLat": 34.2769796
+        "maxLat": 34.2764427
       }
     },
     {
       "parentToken": "80c29bc",
       "path": "80c/80c29bc.json",
-      "count": 497,
+      "count": 446,
       "bbox": {
         "minLng": -118.5797981,
         "minLat": 34.1880653,
@@ -538,7 +538,7 @@
     {
       "parentToken": "80c29c4",
       "path": "80c/80c29c4.json",
-      "count": 744,
+      "count": 690,
       "bbox": {
         "minLng": -118.626479,
         "minLat": 34.1773446,
@@ -549,7 +549,7 @@
     {
       "parentToken": "80c29cc",
       "path": "80c/80c29cc.json",
-      "count": 559,
+      "count": 530,
       "bbox": {
         "minLng": -118.626479,
         "minLat": 34.2182565,
@@ -560,9 +560,9 @@
     {
       "parentToken": "80c29d4",
       "path": "80c/80c29d4.json",
-      "count": 635,
+      "count": 625,
       "bbox": {
-        "minLng": -118.6724174,
+        "minLng": -118.668772,
         "minLat": 34.206506,
         "maxLng": -118.626479,
         "maxLat": 34.2575041
@@ -571,10 +571,10 @@
     {
       "parentToken": "80c29dc",
       "path": "80c/80c29dc.json",
-      "count": 631,
+      "count": 596,
       "bbox": {
         "minLng": -118.6731465,
-        "minLat": 34.167803,
+        "minLat": 34.1678647,
         "maxLng": -118.626479,
         "maxLat": 34.2168784
       }
@@ -582,7 +582,7 @@
     {
       "parentToken": "80c29e4",
       "path": "80c/80c29e4.json",
-      "count": 617,
+      "count": 590,
       "bbox": {
         "minLng": -118.6731465,
         "minLat": 34.1255639,
@@ -593,7 +593,7 @@
     {
       "parentToken": "80c29ec",
       "path": "80c/80c29ec.json",
-      "count": 698,
+      "count": 617,
       "bbox": {
         "minLng": -118.626479,
         "minLat": 34.1380429,
@@ -604,7 +604,7 @@
     {
       "parentToken": "80c29f4",
       "path": "80c/80c29f4.json",
-      "count": 413,
+      "count": 411,
       "bbox": {
         "minLng": -118.626479,
         "minLat": 34.0967414,
@@ -615,7 +615,7 @@
     {
       "parentToken": "80c29fc",
       "path": "80c/80c29fc.json",
-      "count": 540,
+      "count": 537,
       "bbox": {
         "minLng": -118.6731465,
         "minLat": 34.0873806,
@@ -626,7 +626,7 @@
     {
       "parentToken": "80c2a04",
       "path": "80c/80c2a04.json",
-      "count": 328,
+      "count": 327,
       "bbox": {
         "minLng": -118.6731465,
         "minLat": 34.044286,
@@ -637,7 +637,7 @@
     {
       "parentToken": "80c2a0c",
       "path": "80c/80c2a0c.json",
-      "count": 193,
+      "count": 182,
       "bbox": {
         "minLng": -118.6731465,
         "minLat": 34.0355377,
@@ -648,10 +648,10 @@
     {
       "parentToken": "80c2a14",
       "path": "80c/80c2a14.json",
-      "count": 375,
+      "count": 352,
       "bbox": {
         "minLng": -118.626479,
-        "minLat": 34.0359779,
+        "minLat": 34.0361624,
         "maxLng": -118.5797981,
         "maxLat": 34.0637934
       }
@@ -659,7 +659,7 @@
     {
       "parentToken": "80c2a1c",
       "path": "80c/80c2a1c.json",
-      "count": 537,
+      "count": 535,
       "bbox": {
         "minLng": -118.626479,
         "minLat": 34.0566675,
@@ -670,7 +670,7 @@
     {
       "parentToken": "80c2a24",
       "path": "80c/80c2a24.json",
-      "count": 1014,
+      "count": 1008,
       "bbox": {
         "minLng": -118.5797981,
         "minLat": 34.069509,
@@ -681,7 +681,7 @@
     {
       "parentToken": "80c2a2c",
       "path": "80c/80c2a2c.json",
-      "count": 577,
+      "count": 573,
       "bbox": {
         "minLng": -118.5331038,
         "minLat": 34.0777984,
@@ -692,7 +692,7 @@
     {
       "parentToken": "80c2a34",
       "path": "80c/80c2a34.json",
-      "count": 857,
+      "count": 803,
       "bbox": {
         "minLng": -118.5331038,
         "minLat": 34.0363334,
@@ -703,7 +703,7 @@
     {
       "parentToken": "80c2a3c",
       "path": "80c/80c2a3c.json",
-      "count": 696,
+      "count": 681,
       "bbox": {
         "minLng": -118.5797981,
         "minLat": 34.0350452,
@@ -725,7 +725,7 @@
     {
       "parentToken": "80c2a4c",
       "path": "80c/80c2a4c.json",
-      "count": 744,
+      "count": 688,
       "bbox": {
         "minLng": -118.5331038,
         "minLat": 34.0051448,
@@ -736,7 +736,7 @@
     {
       "parentToken": "80c2a54",
       "path": "80c/80c2a54.json",
-      "count": 49,
+      "count": 43,
       "bbox": {
         "minLng": -118.4936952,
         "minLat": 33.9980242,
@@ -747,7 +747,7 @@
     {
       "parentToken": "80c2b04",
       "path": "80c/80c2b04.json",
-      "count": 513,
+      "count": 502,
       "bbox": {
         "minLng": -118.4630376,
         "minLat": 33.9367863,
@@ -758,7 +758,7 @@
     {
       "parentToken": "80c2b0c",
       "path": "80c/80c2b0c.json",
-      "count": 1616,
+      "count": 1447,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 33.9369695,
@@ -769,7 +769,7 @@
     {
       "parentToken": "80c2b14",
       "path": "80c/80c2b14.json",
-      "count": 1242,
+      "count": 1167,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 33.9005483,
@@ -780,10 +780,10 @@
     {
       "parentToken": "80c2b34",
       "path": "80c/80c2b34.json",
-      "count": 134,
+      "count": 117,
       "bbox": {
         "minLng": -118.4038961,
-        "minLat": 33.8421128,
+        "minLat": 33.8438539,
         "maxLng": -118.3929417,
         "maxLat": 33.8666594
       }
@@ -791,54 +791,54 @@
     {
       "parentToken": "80c2b3c",
       "path": "80c/80c2b3c.json",
-      "count": 348,
+      "count": 287,
       "bbox": {
         "minLng": -118.4214217,
         "minLat": 33.8639189,
         "maxLng": -118.3929417,
-        "maxLat": 33.9073141
+        "maxLat": 33.9058497
       }
     },
     {
       "parentToken": "80c2b44",
       "path": "80c/80c2b44.json",
-      "count": 417,
+      "count": 321,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 33.8684895,
         "maxLng": -118.3461948,
-        "maxLat": 33.9175388
+        "maxLat": 33.9174497
       }
     },
     {
       "parentToken": "80c2b4c",
       "path": "80c/80c2b4c.json",
-      "count": 574,
+      "count": 473,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 33.8259869,
         "maxLng": -118.3461948,
-        "maxLat": 33.8770642
+        "maxLat": 33.8765115
       }
     },
     {
       "parentToken": "80c2b54",
       "path": "80c/80c2b54.json",
-      "count": 377,
+      "count": 319,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 33.8372966,
         "maxLng": -118.299435,
-        "maxLat": 33.8893639
+        "maxLat": 33.8887302
       }
     },
     {
       "parentToken": "80c2b5c",
       "path": "80c/80c2b5c.json",
-      "count": 703,
+      "count": 646,
       "bbox": {
         "minLng": -118.3461948,
-        "minLat": 33.8783411,
+        "minLat": 33.8788882,
         "maxLng": -118.299435,
         "maxLat": 33.931039
       }
@@ -846,10 +846,10 @@
     {
       "parentToken": "80c2b64",
       "path": "80c/80c2b64.json",
-      "count": 512,
+      "count": 438,
       "bbox": {
         "minLng": -118.3461948,
-        "minLat": 33.9197331,
+        "minLat": 33.9214689,
         "maxLng": -118.299435,
         "maxLat": 33.9712324
       }
@@ -857,7 +857,7 @@
     {
       "parentToken": "80c2b6c",
       "path": "80c/80c2b6c.json",
-      "count": 754,
+      "count": 690,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 33.9082279,
@@ -868,7 +868,7 @@
     {
       "parentToken": "80c2b74",
       "path": "80c/80c2b74.json",
-      "count": 435,
+      "count": 404,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 33.9494139,
@@ -879,10 +879,10 @@
     {
       "parentToken": "80c2b7c",
       "path": "80c/80c2b7c.json",
-      "count": 329,
+      "count": 303,
       "bbox": {
         "minLng": -118.3461948,
-        "minLat": 33.9618416,
+        "minLat": 33.9639461,
         "maxLng": -118.299435,
         "maxLat": 34.011591
       }
@@ -890,7 +890,7 @@
     {
       "parentToken": "80c2b84",
       "path": "80c/80c2b84.json",
-      "count": 412,
+      "count": 343,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 34.0043872,
@@ -901,18 +901,18 @@
     {
       "parentToken": "80c2b8c",
       "path": "80c/80c2b8c.json",
-      "count": 568,
+      "count": 502,
       "bbox": {
         "minLng": -118.3461948,
-        "minLat": 34.0444477,
+        "minLat": 34.0445381,
         "maxLng": -118.299435,
-        "maxLat": 34.0923492
+        "maxLat": 34.091985
       }
     },
     {
       "parentToken": "80c2b94",
       "path": "80c/80c2b94.json",
-      "count": 580,
+      "count": 522,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 34.0310019,
@@ -923,7 +923,7 @@
     {
       "parentToken": "80c2b9c",
       "path": "80c/80c2b9c.json",
-      "count": 664,
+      "count": 610,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 33.9917716,
@@ -934,18 +934,18 @@
     {
       "parentToken": "80c2ba4",
       "path": "80c/80c2ba4.json",
-      "count": 911,
+      "count": 849,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 33.9781313,
         "maxLng": -118.3929417,
-        "maxLat": 34.0302696
+        "maxLat": 34.0297203
       }
     },
     {
       "parentToken": "80c2bac",
       "path": "80c/80c2bac.json",
-      "count": 943,
+      "count": 867,
       "bbox": {
         "minLng": -118.4863963,
         "minLat": 33.9720816,
@@ -956,18 +956,18 @@
     {
       "parentToken": "80c2bb4",
       "path": "80c/80c2bb4.json",
-      "count": 1000,
+      "count": 923,
       "bbox": {
         "minLng": -118.4863963,
         "minLat": 34.0073487,
         "maxLng": -118.4396756,
-        "maxLat": 34.0598529
+        "maxLat": 34.0594859
       }
     },
     {
       "parentToken": "80c2bbc",
       "path": "80c/80c2bbc.json",
-      "count": 846,
+      "count": 727,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 34.0194593,
@@ -978,7 +978,7 @@
     {
       "parentToken": "80c2bc4",
       "path": "80c/80c2bc4.json",
-      "count": 439,
+      "count": 352,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 34.0602198,
@@ -989,7 +989,7 @@
     {
       "parentToken": "80c2bcc",
       "path": "80c/80c2bcc.json",
-      "count": 1058,
+      "count": 935,
       "bbox": {
         "minLng": -118.4863963,
         "minLat": 34.0489252,
@@ -1000,7 +1000,7 @@
     {
       "parentToken": "80c2bd4",
       "path": "80c/80c2bd4.json",
-      "count": 714,
+      "count": 697,
       "bbox": {
         "minLng": -118.4863963,
         "minLat": 34.091411,
@@ -1011,7 +1011,7 @@
     {
       "parentToken": "80c2bdc",
       "path": "80c/80c2bdc.json",
-      "count": 355,
+      "count": 338,
       "bbox": {
         "minLng": -118.4396756,
         "minLat": 34.1044496,
@@ -1022,7 +1022,7 @@
     {
       "parentToken": "80c2be4",
       "path": "80c/80c2be4.json",
-      "count": 672,
+      "count": 575,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 34.1127022,
@@ -1033,7 +1033,7 @@
     {
       "parentToken": "80c2bec",
       "path": "80c/80c2bec.json",
-      "count": 437,
+      "count": 396,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 34.0715861,
@@ -1044,7 +1044,7 @@
     {
       "parentToken": "80c2bf4",
       "path": "80c/80c2bf4.json",
-      "count": 692,
+      "count": 606,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 34.0833017,
@@ -1055,7 +1055,7 @@
     {
       "parentToken": "80c2bfc",
       "path": "80c/80c2bfc.json",
-      "count": 615,
+      "count": 563,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 34.1263428,
@@ -1066,7 +1066,7 @@
     {
       "parentToken": "80c2c04",
       "path": "80c/80c2c04.json",
-      "count": 722,
+      "count": 675,
       "bbox": {
         "minLng": -118.299435,
         "minLat": 34.1361285,
@@ -1077,10 +1077,10 @@
     {
       "parentToken": "80c2c0c",
       "path": "80c/80c2c0c.json",
-      "count": 705,
+      "count": 627,
       "bbox": {
         "minLng": -118.299435,
-        "minLat": 34.0966432,
+        "minLat": 34.0974657,
         "maxLng": -118.2526623,
         "maxLat": 34.1474501
       }
@@ -1088,18 +1088,18 @@
     {
       "parentToken": "80c2c14",
       "path": "80c/80c2c14.json",
-      "count": 503,
+      "count": 431,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 34.1075022,
         "maxLng": -118.2058768,
-        "maxLat": 34.1536517
+        "maxLat": 34.1528261
       }
     },
     {
       "parentToken": "80c2c1c",
       "path": "80c/80c2c1c.json",
-      "count": 382,
+      "count": 353,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 34.1485449,
@@ -1110,7 +1110,7 @@
     {
       "parentToken": "80c2c24",
       "path": "80c/80c2c24.json",
-      "count": 506,
+      "count": 460,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 34.1634072,
@@ -1121,7 +1121,7 @@
     {
       "parentToken": "80c2c2c",
       "path": "80c/80c2c2c.json",
-      "count": 410,
+      "count": 400,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 34.1728727,
@@ -1132,18 +1132,18 @@
     {
       "parentToken": "80c2c34",
       "path": "80c/80c2c34.json",
-      "count": 539,
+      "count": 512,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 34.1308957,
         "maxLng": -118.1122679,
-        "maxLat": 34.1806747
+        "maxLat": 34.1787458
       }
     },
     {
       "parentToken": "80c2c3c",
       "path": "80c/80c2c3c.json",
-      "count": 431,
+      "count": 378,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 34.1194346,
@@ -1154,10 +1154,10 @@
     {
       "parentToken": "80c2c44",
       "path": "80c/80c2c44.json",
-      "count": 760,
+      "count": 694,
       "bbox": {
         "minLng": -118.2058768,
-        "minLat": 34.0779109,
+        "minLat": 34.0780929,
         "maxLng": -118.1590786,
         "maxLat": 34.1285322
       }
@@ -1165,7 +1165,7 @@
     {
       "parentToken": "80c2c4c",
       "path": "80c/80c2c4c.json",
-      "count": 572,
+      "count": 538,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 34.0906381,
@@ -1176,10 +1176,10 @@
     {
       "parentToken": "80c2c54",
       "path": "80c/80c2c54.json",
-      "count": 458,
+      "count": 426,
       "bbox": {
         "minLng": -118.1590786,
-        "minLat": 34.0528179,
+        "minLat": 34.0534587,
         "maxLng": -118.1122679,
         "maxLat": 34.1006231
       }
@@ -1187,7 +1187,7 @@
     {
       "parentToken": "80c2c5c",
       "path": "80c/80c2c5c.json",
-      "count": 662,
+      "count": 618,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 34.0367339,
@@ -1198,21 +1198,21 @@
     {
       "parentToken": "80c2c64",
       "path": "80c/80c2c64.json",
-      "count": 1091,
+      "count": 1012,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 34.0254497,
         "maxLng": -118.2058768,
-        "maxLat": 34.077001
+        "maxLat": 34.075909
       }
     },
     {
       "parentToken": "80c2c6c",
       "path": "80c/80c2c6c.json",
-      "count": 530,
+      "count": 492,
       "bbox": {
         "minLng": -118.2526623,
-        "minLat": 34.0669899,
+        "minLat": 34.0675366,
         "maxLng": -118.2058768,
         "maxLat": 34.1136847
       }
@@ -1220,10 +1220,10 @@
     {
       "parentToken": "80c2c74",
       "path": "80c/80c2c74.json",
-      "count": 703,
+      "count": 630,
       "bbox": {
         "minLng": -118.299435,
-        "minLat": 34.0553134,
+        "minLat": 34.055496,
         "maxLng": -118.2526623,
         "maxLat": 34.1059503
       }
@@ -1231,7 +1231,7 @@
     {
       "parentToken": "80c2c7c",
       "path": "80c/80c2c7c.json",
-      "count": 1138,
+      "count": 1068,
       "bbox": {
         "minLng": -118.299435,
         "minLat": 34.0150609,
@@ -1242,7 +1242,7 @@
     {
       "parentToken": "80c2c84",
       "path": "80c/80c2c84.json",
-      "count": 484,
+      "count": 466,
       "bbox": {
         "minLng": -118.2987043,
         "minLat": 33.9738785,
@@ -1253,7 +1253,7 @@
     {
       "parentToken": "80c2c8c",
       "path": "80c/80c2c8c.json",
-      "count": 419,
+      "count": 405,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 33.9837155,
@@ -1264,7 +1264,7 @@
     {
       "parentToken": "80c2c94",
       "path": "80c/80c2c94.json",
-      "count": 428,
+      "count": 360,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 33.9428742,
@@ -1275,7 +1275,7 @@
     {
       "parentToken": "80c2c9c",
       "path": "80c/80c2c9c.json",
-      "count": 339,
+      "count": 307,
       "bbox": {
         "minLng": -118.2965121,
         "minLat": 33.932861,
@@ -1286,7 +1286,7 @@
     {
       "parentToken": "80c2ca4",
       "path": "80c/80c2ca4.json",
-      "count": 373,
+      "count": 362,
       "bbox": {
         "minLng": -118.299435,
         "minLat": 33.8903694,
@@ -1297,10 +1297,10 @@
     {
       "parentToken": "80c2cac",
       "path": "80c/80c2cac.json",
-      "count": 560,
+      "count": 530,
       "bbox": {
         "minLng": -118.299435,
-        "minLat": 33.8529761,
+        "minLat": 33.853522,
         "maxLng": -118.2526623,
         "maxLat": 33.8993735
       }
@@ -1308,7 +1308,7 @@
     {
       "parentToken": "80c2cb4",
       "path": "80c/80c2cb4.json",
-      "count": 372,
+      "count": 341,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 33.8605935,
@@ -1319,7 +1319,7 @@
     {
       "parentToken": "80c2cbc",
       "path": "80c/80c2cbc.json",
-      "count": 290,
+      "count": 228,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 33.9018334,
@@ -1330,7 +1330,7 @@
     {
       "parentToken": "80c2cc4",
       "path": "80c/80c2cc4.json",
-      "count": 559,
+      "count": 495,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 33.9132803,
@@ -1341,7 +1341,7 @@
     {
       "parentToken": "80c2ccc",
       "path": "80c/80c2ccc.json",
-      "count": 417,
+      "count": 367,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 33.8729412,
@@ -1352,7 +1352,7 @@
     {
       "parentToken": "80c2cd4",
       "path": "80c/80c2cd4.json",
-      "count": 268,
+      "count": 170,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 33.8881988,
@@ -1363,7 +1363,7 @@
     {
       "parentToken": "80c2cdc",
       "path": "80c/80c2cdc.json",
-      "count": 496,
+      "count": 413,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 33.9257977,
@@ -1374,7 +1374,7 @@
     {
       "parentToken": "80c2ce4",
       "path": "80c/80c2ce4.json",
-      "count": 295,
+      "count": 249,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 33.966127,
@@ -1385,18 +1385,18 @@
     {
       "parentToken": "80c2cec",
       "path": "80c/80c2cec.json",
-      "count": 382,
+      "count": 335,
       "bbox": {
         "minLng": -118.2058768,
-        "minLat": 33.9543278,
+        "minLat": 33.9556102,
         "maxLng": -118.1590786,
-        "maxLat": 34.0060748
+        "maxLat": 34.0058932
       }
     },
     {
       "parentToken": "80c2cf4",
       "path": "80c/80c2cf4.json",
-      "count": 437,
+      "count": 387,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 33.9989923,
@@ -1407,7 +1407,7 @@
     {
       "parentToken": "80c2cfc",
       "path": "80c/80c2cfc.json",
-      "count": 334,
+      "count": 299,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 34.0069823,
@@ -1418,7 +1418,7 @@
     {
       "parentToken": "80c2d04",
       "path": "80c/80c2d04.json",
-      "count": 450,
+      "count": 425,
       "bbox": {
         "minLng": -118.1086102,
         "minLat": 34.0200387,
@@ -1429,7 +1429,7 @@
     {
       "parentToken": "80c2d0c",
       "path": "80c/80c2d0c.json",
-      "count": 604,
+      "count": 588,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 34.0309018,
@@ -1440,10 +1440,10 @@
     {
       "parentToken": "80c2d14",
       "path": "80c/80c2d14.json",
-      "count": 541,
+      "count": 523,
       "bbox": {
         "minLng": -118.0654445,
-        "minLat": 33.9893087,
+        "minLat": 33.9899503,
         "maxLng": -118.0186087,
         "maxLat": 34.0415685
       }
@@ -1451,7 +1451,7 @@
     {
       "parentToken": "80c2d1c",
       "path": "80c/80c2d1c.json",
-      "count": 780,
+      "count": 759,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 33.9785493,
@@ -1462,10 +1462,10 @@
     {
       "parentToken": "80c2d24",
       "path": "80c/80c2d24.json",
-      "count": 334,
+      "count": 310,
       "bbox": {
         "minLng": -118.1122679,
-        "minLat": 33.9364847,
+        "minLat": 33.9373897,
         "maxLng": -118.0654445,
         "maxLat": 33.9865958
       }
@@ -1473,29 +1473,29 @@
     {
       "parentToken": "80c2d2c",
       "path": "80c/80c2d2c.json",
-      "count": 378,
+      "count": 338,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 33.8959489,
-        "maxLng": -118.0654445,
+        "maxLng": -118.0676396,
         "maxLat": 33.9449872
       }
     },
     {
       "parentToken": "80c2d34",
       "path": "80c/80c2d34.json",
-      "count": 278,
+      "count": 249,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 33.9110685,
         "maxLng": -118.0186087,
-        "maxLat": 33.9577927
+        "maxLat": 33.9576123
       }
     },
     {
       "parentToken": "80c2d3c",
       "path": "80c/80c2d3c.json",
-      "count": 273,
+      "count": 210,
       "bbox": {
         "minLng": -118.0647128,
         "minLat": 33.9524964,
@@ -1506,18 +1506,18 @@
     {
       "parentToken": "80c2d44",
       "path": "80c/80c2d44.json",
-      "count": 255,
+      "count": 249,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 33.9626054,
         "maxLng": -117.9724927,
-        "maxLat": 34.0056409
+        "maxLat": 34.0044583
       }
     },
     {
       "parentToken": "80c2d4c",
       "path": "80c/80c2d4c.json",
-      "count": 358,
+      "count": 294,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 33.918526,
@@ -1528,7 +1528,7 @@
     {
       "parentToken": "80c2d54",
       "path": "80c/80c2d54.json",
-      "count": 545,
+      "count": 502,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.9305993,
@@ -1539,18 +1539,18 @@
     {
       "parentToken": "80c2d5c",
       "path": "80c/80c2d5c.json",
-      "count": 488,
+      "count": 448,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.9729593,
         "maxLng": -117.9249002,
-        "maxLat": 34.0237677
+        "maxLat": 34.0223276
       }
     },
     {
       "parentToken": "80c2d64",
       "path": "80c/80c2d64.json",
-      "count": 399,
+      "count": 341,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 34.0124192,
@@ -1561,7 +1561,7 @@
     {
       "parentToken": "80c2d6c",
       "path": "80c/80c2d6c.json",
-      "count": 457,
+      "count": 448,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 34.003159,
@@ -1572,7 +1572,7 @@
     {
       "parentToken": "80c2d74",
       "path": "80c/80c2d74.json",
-      "count": 413,
+      "count": 381,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 34.0417492,
@@ -1583,7 +1583,7 @@
     {
       "parentToken": "80c2d7c",
       "path": "80c/80c2d7c.json",
-      "count": 257,
+      "count": 228,
       "bbox": {
         "minLng": -117.9710285,
         "minLat": 34.0570098,
@@ -1594,10 +1594,10 @@
     {
       "parentToken": "80c2d84",
       "path": "80c/80c2d84.json",
-      "count": 1520,
+      "count": 1510,
       "bbox": {
         "minLng": -117.9717606,
-        "minLat": 34.0983375,
+        "minLat": 34.0989787,
         "maxLng": -117.9249002,
         "maxLat": 34.1451216
       }
@@ -1605,7 +1605,7 @@
     {
       "parentToken": "80c2d8c",
       "path": "80c/80c2d8c.json",
-      "count": 587,
+      "count": 580,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 34.1364598,
@@ -1616,7 +1616,7 @@
     {
       "parentToken": "80c2d94",
       "path": "80c/80c2d94.json",
-      "count": 652,
+      "count": 609,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 34.1238098,
@@ -1627,7 +1627,7 @@
     {
       "parentToken": "80c2d9c",
       "path": "80c/80c2d9c.json",
-      "count": 771,
+      "count": 756,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 34.0865361,
@@ -1638,7 +1638,7 @@
     {
       "parentToken": "80c2da4",
       "path": "80c/80c2da4.json",
-      "count": 372,
+      "count": 349,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 34.0726736,
@@ -1649,7 +1649,7 @@
     {
       "parentToken": "80c2dac",
       "path": "80c/80c2dac.json",
-      "count": 431,
+      "count": 402,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 34.0618032,
@@ -1660,7 +1660,7 @@
     {
       "parentToken": "80c2db4",
       "path": "80c/80c2db4.json",
-      "count": 386,
+      "count": 328,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 34.1012637,
@@ -1671,10 +1671,10 @@
     {
       "parentToken": "80c2dbc",
       "path": "80c/80c2dbc.json",
-      "count": 624,
+      "count": 568,
       "bbox": {
         "minLng": -118.0654445,
-        "minLat": 34.1124065,
+        "minLat": 34.1149421,
         "maxLng": -118.0186087,
         "maxLat": 34.1648135
       }
@@ -1682,7 +1682,7 @@
     {
       "parentToken": "80c2dc4",
       "path": "80c/80c2dc4.json",
-      "count": 2094,
+      "count": 2091,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 34.1563031,
@@ -1693,10 +1693,10 @@
     {
       "parentToken": "80c2dcc",
       "path": "80c/80c2dcc.json",
-      "count": 1121,
+      "count": 1090,
       "bbox": {
         "minLng": -118.1122679,
-        "minLat": 34.1449867,
+        "minLat": 34.1451782,
         "maxLng": -118.0654445,
         "maxLat": 34.1942018
       }
@@ -1715,7 +1715,7 @@
     {
       "parentToken": "80c2ddc",
       "path": "80c/80c2ddc.json",
-      "count": 1811,
+      "count": 1809,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 34.1942018,
@@ -1726,7 +1726,7 @@
     {
       "parentToken": "80c2de4",
       "path": "80c/80c2de4.json",
-      "count": 1852,
+      "count": 1851,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 34.2057994,
@@ -1737,7 +1737,7 @@
     {
       "parentToken": "80c2dec",
       "path": "80c/80c2dec.json",
-      "count": 2666,
+      "count": 2664,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 34.1648135,
@@ -1781,7 +1781,7 @@
     {
       "parentToken": "80c2e0c",
       "path": "80c/80c2e0c.json",
-      "count": 806,
+      "count": 804,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 34.2467675,
@@ -1792,7 +1792,7 @@
     {
       "parentToken": "80c2e14",
       "path": "80c/80c2e14.json",
-      "count": 1542,
+      "count": 1537,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 34.2882615,
@@ -1803,7 +1803,7 @@
     {
       "parentToken": "80c2e1c",
       "path": "80c/80c2e1c.json",
-      "count": 2421,
+      "count": 2419,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 34.3027485,
@@ -1825,7 +1825,7 @@
     {
       "parentToken": "80c2e3c",
       "path": "80c/80c2e3c.json",
-      "count": 1994,
+      "count": 1992,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 34.3286499,
@@ -1869,7 +1869,7 @@
     {
       "parentToken": "80c2e5c",
       "path": "80c/80c2e5c.json",
-      "count": 230,
+      "count": 229,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 34.3055795,
@@ -1880,7 +1880,7 @@
     {
       "parentToken": "80c2e64",
       "path": "80c/80c2e64.json",
-      "count": 441,
+      "count": 440,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 34.2703153,
@@ -1891,7 +1891,7 @@
     {
       "parentToken": "80c2e6c",
       "path": "80c/80c2e6c.json",
-      "count": 837,
+      "count": 834,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 34.2773777,
@@ -1924,7 +1924,7 @@
     {
       "parentToken": "80c2e84",
       "path": "80c/80c2e84.json",
-      "count": 2410,
+      "count": 2409,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 34.2131806,
@@ -1957,7 +1957,7 @@
     {
       "parentToken": "80c2e9c",
       "path": "80c/80c2e9c.json",
-      "count": 2783,
+      "count": 2769,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 34.200608,
@@ -1968,7 +1968,7 @@
     {
       "parentToken": "80c2ea4",
       "path": "80c/80c2ea4.json",
-      "count": 1192,
+      "count": 1167,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 34.1905757,
@@ -1979,7 +1979,7 @@
     {
       "parentToken": "80c2eac",
       "path": "80c/80c2eac.json",
-      "count": 620,
+      "count": 608,
       "bbox": {
         "minLng": -118.299435,
         "minLat": 34.1768743,
@@ -1990,7 +1990,7 @@
     {
       "parentToken": "80c2eb4",
       "path": "80c/80c2eb4.json",
-      "count": 1197,
+      "count": 1182,
       "bbox": {
         "minLng": -118.299435,
         "minLat": 34.2215337,
@@ -2001,10 +2001,10 @@
     {
       "parentToken": "80c2ebc",
       "path": "80c/80c2ebc.json",
-      "count": 2539,
+      "count": 2534,
       "bbox": {
         "minLng": -118.2526623,
-        "minLat": 34.230307,
+        "minLat": 34.2306723,
         "maxLng": -118.2058768,
         "maxLat": 34.281526
       }
@@ -2023,7 +2023,7 @@
     {
       "parentToken": "80c2ecc",
       "path": "80c/80c2ecc.json",
-      "count": 2069,
+      "count": 2066,
       "bbox": {
         "minLng": -118.299435,
         "minLat": 34.2625212,
@@ -2067,7 +2067,7 @@
     {
       "parentToken": "80c2eec",
       "path": "80c/80c2eec.json",
-      "count": 463,
+      "count": 462,
       "bbox": {
         "minLng": -118.1992966,
         "minLat": 34.2842631,
@@ -2243,7 +2243,7 @@
     {
       "parentToken": "80c31e4",
       "path": "80c/80c31e4.json",
-      "count": 2533,
+      "count": 2532,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 34.3108851,
@@ -2298,7 +2298,7 @@
     {
       "parentToken": "80c320c",
       "path": "80c/80c320c.json",
-      "count": 494,
+      "count": 493,
       "bbox": {
         "minLng": -117.9183094,
         "minLat": 34.1922704,
@@ -2309,7 +2309,7 @@
     {
       "parentToken": "80c3214",
       "path": "80c/80c3214.json",
-      "count": 870,
+      "count": 869,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 34.2029006,
@@ -2386,7 +2386,7 @@
     {
       "parentToken": "80c324c",
       "path": "80c/80c324c.json",
-      "count": 388,
+      "count": 387,
       "bbox": {
         "minLng": -117.7673896,
         "minLat": 34.1875895,
@@ -2397,9 +2397,9 @@
     {
       "parentToken": "80c3254",
       "path": "80c/80c3254.json",
-      "count": 508,
+      "count": 505,
       "bbox": {
-        "minLng": -117.7783831,
+        "minLng": -117.7776502,
         "minLat": 34.1420226,
         "maxLng": -117.7373373,
         "maxLat": 34.1886379
@@ -2408,10 +2408,10 @@
     {
       "parentToken": "80c325c",
       "path": "80c/80c325c.json",
-      "count": 409,
+      "count": 402,
       "bbox": {
         "minLng": -117.8311428,
-        "minLat": 34.1291001,
+        "minLat": 34.1356946,
         "maxLng": -117.797437,
         "maxLat": 34.174076
       }
@@ -2419,7 +2419,7 @@
     {
       "parentToken": "80c3264",
       "path": "80c/80c3264.json",
-      "count": 316,
+      "count": 283,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 34.1199328,
@@ -2441,7 +2441,7 @@
     {
       "parentToken": "80c3274",
       "path": "80c/80c3274.json",
-      "count": 657,
+      "count": 656,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 34.1472855,
@@ -2452,7 +2452,7 @@
     {
       "parentToken": "80c327c",
       "path": "80c/80c327c.json",
-      "count": 463,
+      "count": 422,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 34.1067912,
@@ -2463,7 +2463,7 @@
     {
       "parentToken": "80c3284",
       "path": "80c/80c3284.json",
-      "count": 261,
+      "count": 230,
       "bbox": {
         "minLng": -117.9241679,
         "minLat": 34.0688673,
@@ -2474,7 +2474,7 @@
     {
       "parentToken": "80c328c",
       "path": "80c/80c328c.json",
-      "count": 298,
+      "count": 271,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 34.0782556,
@@ -2485,29 +2485,29 @@
     {
       "parentToken": "80c3294",
       "path": "80c/80c3294.json",
-      "count": 428,
+      "count": 404,
       "bbox": {
         "minLng": -117.8772951,
         "minLat": 34.0383331,
         "maxLng": -117.8311428,
-        "maxLat": 34.0878548
+        "maxLat": 34.0876752
       }
     },
     {
       "parentToken": "80c329c",
       "path": "80c/80c329c.json",
-      "count": 287,
+      "count": 218,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 34.0237677,
         "maxLng": -117.8794925,
-        "maxLat": 34.0754561
+        "maxLat": 34.0743526
       }
     },
     {
       "parentToken": "80c32a4",
       "path": "80c/80c32a4.json",
-      "count": 342,
+      "count": 308,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 33.9868163,
@@ -2518,7 +2518,7 @@
     {
       "parentToken": "80c32ac",
       "path": "80c/80c32ac.json",
-      "count": 312,
+      "count": 296,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 33.9424734,
@@ -2529,7 +2529,7 @@
     {
       "parentToken": "80c32b4",
       "path": "80c/80c32b4.json",
-      "count": 463,
+      "count": 423,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 33.9571995,
@@ -2540,7 +2540,7 @@
     {
       "parentToken": "80c32bc",
       "path": "80c/80c32bc.json",
-      "count": 562,
+      "count": 549,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 33.99598,
@@ -2551,7 +2551,7 @@
     {
       "parentToken": "80c32c4",
       "path": "80c/80c32c4.json",
-      "count": 949,
+      "count": 891,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 34.0058496,
@@ -2562,7 +2562,7 @@
     {
       "parentToken": "80c32cc",
       "path": "80c/80c32cc.json",
-      "count": 319,
+      "count": 238,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 33.9681352,
@@ -2573,7 +2573,7 @@
     {
       "parentToken": "80c32d4",
       "path": "80c/80c32d4.json",
-      "count": 167,
+      "count": 139,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 33.980804,
@@ -2584,18 +2584,18 @@
     {
       "parentToken": "80c32dc",
       "path": "80c/80c32dc.json",
-      "count": 215,
+      "count": 183,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 34.0217831,
         "maxLng": -117.7373373,
-        "maxLat": 34.063977
+        "maxLat": 34.0635973
       }
     },
     {
       "parentToken": "80c32e4",
       "path": "80c/80c32e4.json",
-      "count": 663,
+      "count": 613,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 34.0582463,
@@ -2606,7 +2606,7 @@
     {
       "parentToken": "80c32ec",
       "path": "80c/80c32ec.json",
-      "count": 2298,
+      "count": 2290,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 34.0467714,
@@ -2617,18 +2617,18 @@
     {
       "parentToken": "80c32f4",
       "path": "80c/80c32f4.json",
-      "count": 559,
+      "count": 525,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 34.0891114,
         "maxLng": -117.784246,
-        "maxLat": 34.1384836
+        "maxLat": 34.1328946
       }
     },
     {
       "parentToken": "80c32fc",
       "path": "80c/80c32fc.json",
-      "count": 530,
+      "count": 482,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 34.0993363,
@@ -2639,7 +2639,7 @@
     {
       "parentToken": "80c3304",
       "path": "80c/80c3304.json",
-      "count": 264,
+      "count": 258,
       "bbox": {
         "minLng": -117.7366043,
         "minLat": 34.1129786,
@@ -2650,7 +2650,7 @@
     {
       "parentToken": "80c330c",
       "path": "80c/80c330c.json",
-      "count": 439,
+      "count": 435,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 34.1231387,
@@ -2661,7 +2661,7 @@
     {
       "parentToken": "80c3314",
       "path": "80c/80c3314.json",
-      "count": 401,
+      "count": 357,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 34.0813207,
@@ -2672,7 +2672,7 @@
     {
       "parentToken": "80c331c",
       "path": "80c/80c331c.json",
-      "count": 957,
+      "count": 905,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 34.0742797,
@@ -2683,7 +2683,7 @@
     {
       "parentToken": "80c3324",
       "path": "80c/80c3324.json",
-      "count": 231,
+      "count": 218,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 34.0310912,
@@ -2694,7 +2694,7 @@
     {
       "parentToken": "80c332c",
       "path": "80c/80c332c.json",
-      "count": 505,
+      "count": 458,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.9889211,
@@ -2705,18 +2705,18 @@
     {
       "parentToken": "80c3334",
       "path": "80c/80c3334.json",
-      "count": 115,
+      "count": 79,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 33.9992393,
         "maxLng": -117.662552,
-        "maxLat": 34.0390172
+        "maxLat": 34.0383744
       }
     },
     {
       "parentToken": "80c333c",
       "path": "80c/80c333c.json",
-      "count": 101,
+      "count": 77,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 34.0520498,
@@ -2892,7 +2892,7 @@
     {
       "parentToken": "80dcc24",
       "path": "80d/80dcc24.json",
-      "count": 321,
+      "count": 302,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 33.6717207,
@@ -2903,7 +2903,7 @@
     {
       "parentToken": "80dcc2c",
       "path": "80d/80dcc2c.json",
-      "count": 516,
+      "count": 478,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.6597243,
@@ -2914,7 +2914,7 @@
     {
       "parentToken": "80dcc34",
       "path": "80d/80dcc34.json",
-      "count": 208,
+      "count": 206,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.7037544,
@@ -2925,7 +2925,7 @@
     {
       "parentToken": "80dcc3c",
       "path": "80d/80dcc3c.json",
-      "count": 294,
+      "count": 293,
       "bbox": {
         "minLng": -117.6801513,
         "minLat": 33.7162792,
@@ -2947,7 +2947,7 @@
     {
       "parentToken": "80dcc4c",
       "path": "80d/80dcc4c.json",
-      "count": 405,
+      "count": 404,
       "bbox": {
         "minLng": -117.7285406,
         "minLat": 33.7596148,
@@ -2958,7 +2958,7 @@
     {
       "parentToken": "80dcc54",
       "path": "80d/80dcc54.json",
-      "count": 241,
+      "count": 240,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.7836699,
@@ -3068,7 +3068,7 @@
     {
       "parentToken": "80dccc4",
       "path": "80d/80dccc4.json",
-      "count": 496,
+      "count": 493,
       "bbox": {
         "minLng": -117.6823511,
         "minLat": 33.9251817,
@@ -3079,7 +3079,7 @@
     {
       "parentToken": "80dcccc",
       "path": "80d/80dcccc.json",
-      "count": 336,
+      "count": 327,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 33.9602989,
@@ -3090,7 +3090,7 @@
     {
       "parentToken": "80dccd4",
       "path": "80d/80dccd4.json",
-      "count": 413,
+      "count": 383,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.9550242,
@@ -3112,7 +3112,7 @@
     {
       "parentToken": "80dcce4",
       "path": "80d/80dcce4.json",
-      "count": 454,
+      "count": 451,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.8681647,
@@ -3123,7 +3123,7 @@
     {
       "parentToken": "80dccec",
       "path": "80d/80dccec.json",
-      "count": 528,
+      "count": 524,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 33.8757166,
@@ -3134,7 +3134,7 @@
     {
       "parentToken": "80dccf4",
       "path": "80d/80dccf4.json",
-      "count": 261,
+      "count": 258,
       "bbox": {
         "minLng": -117.688217,
         "minLat": 33.8380409,
@@ -3145,7 +3145,7 @@
     {
       "parentToken": "80dccfc",
       "path": "80d/80dccfc.json",
-      "count": 274,
+      "count": 267,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.8311231,
@@ -3156,7 +3156,7 @@
     {
       "parentToken": "80dcd04",
       "path": "80d/80dcd04.json",
-      "count": 838,
+      "count": 829,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 33.8126232,
@@ -3167,7 +3167,7 @@
     {
       "parentToken": "80dcd0c",
       "path": "80d/80dcd0c.json",
-      "count": 327,
+      "count": 283,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 33.7999008,
@@ -3178,7 +3178,7 @@
     {
       "parentToken": "80dcd14",
       "path": "80d/80dcd14.json",
-      "count": 514,
+      "count": 498,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 33.8427344,
@@ -3189,18 +3189,18 @@
     {
       "parentToken": "80dcd1c",
       "path": "80d/80dcd1c.json",
-      "count": 414,
+      "count": 383,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 33.8561402,
         "maxLng": -117.7373373,
-        "maxLat": 33.8942456
+        "maxLat": 33.8940669
       }
     },
     {
       "parentToken": "80dcd24",
       "path": "80d/80dcd24.json",
-      "count": 61,
+      "count": 60,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 33.8940669,
@@ -3233,7 +3233,7 @@
     {
       "parentToken": "80dcd3c",
       "path": "80d/80dcd3c.json",
-      "count": 480,
+      "count": 420,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 33.8863721,
@@ -3244,7 +3244,7 @@
     {
       "parentToken": "80dcd44",
       "path": "80d/80dcd44.json",
-      "count": 506,
+      "count": 465,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 33.8718708,
@@ -3255,7 +3255,7 @@
     {
       "parentToken": "80dcd4c",
       "path": "80d/80dcd4c.json",
-      "count": 409,
+      "count": 372,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 33.9138706,
@@ -3266,18 +3266,18 @@
     {
       "parentToken": "80dcd54",
       "path": "80d/80dcd54.json",
-      "count": 478,
+      "count": 393,
       "bbox": {
         "minLng": -117.9249002,
-        "minLat": 33.9004515,
+        "minLat": 33.9027112,
         "maxLng": -117.8780275,
-        "maxLat": 33.9451423
+        "maxLat": 33.9423852
       }
     },
     {
       "parentToken": "80dcd5c",
       "path": "80d/80dcd5c.json",
-      "count": 984,
+      "count": 917,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 33.8593111,
@@ -3288,7 +3288,7 @@
     {
       "parentToken": "80dcd64",
       "path": "80d/80dcd64.json",
-      "count": 385,
+      "count": 325,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 33.8185121,
@@ -3299,7 +3299,7 @@
     {
       "parentToken": "80dcd6c",
       "path": "80d/80dcd6c.json",
-      "count": 742,
+      "count": 692,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 33.8317804,
@@ -3310,7 +3310,7 @@
     {
       "parentToken": "80dcd74",
       "path": "80d/80dcd74.json",
-      "count": 615,
+      "count": 479,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 33.7917777,
@@ -3321,10 +3321,10 @@
     {
       "parentToken": "80dcd7c",
       "path": "80d/80dcd7c.json",
-      "count": 917,
+      "count": 675,
       "bbox": {
         "minLng": -117.9249002,
-        "minLat": 33.7787712,
+        "minLat": 33.7789505,
         "maxLng": -117.8780275,
         "maxLat": 33.8289136
       }
@@ -3332,7 +3332,7 @@
     {
       "parentToken": "80dcd84",
       "path": "80d/80dcd84.json",
-      "count": 678,
+      "count": 596,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 33.7365021,
@@ -3343,7 +3343,7 @@
     {
       "parentToken": "80dcd8c",
       "path": "80d/80dcd8c.json",
-      "count": 481,
+      "count": 445,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 33.695829,
@@ -3354,29 +3354,29 @@
     {
       "parentToken": "80dcd94",
       "path": "80d/80dcd94.json",
-      "count": 391,
+      "count": 336,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 33.7062107,
         "maxLng": -117.8311428,
-        "maxLat": 33.7571569
+        "maxLat": 33.7560477
       }
     },
     {
       "parentToken": "80dcd9c",
       "path": "80d/80dcd9c.json",
-      "count": 568,
+      "count": 506,
       "bbox": {
         "minLng": -117.8780275,
-        "minLat": 33.7474277,
+        "minLat": 33.7482505,
         "maxLng": -117.8311428,
-        "maxLat": 33.7990067
+        "maxLat": 33.7988279
       }
     },
     {
       "parentToken": "80dcda4",
       "path": "80d/80dcda4.json",
-      "count": 507,
+      "count": 473,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 33.7593385,
@@ -3387,7 +3387,7 @@
     {
       "parentToken": "80dcdac",
       "path": "80d/80dcdac.json",
-      "count": 1038,
+      "count": 1023,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 33.7749383,
@@ -3398,7 +3398,7 @@
     {
       "parentToken": "80dcdb4",
       "path": "80d/80dcdb4.json",
-      "count": 350,
+      "count": 324,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 33.7295363,
@@ -3409,10 +3409,10 @@
     {
       "parentToken": "80dcdbc",
       "path": "80d/80dcdbc.json",
-      "count": 341,
+      "count": 278,
       "bbox": {
         "minLng": -117.8311428,
-        "minLat": 33.717828,
+        "minLat": 33.718115,
         "maxLng": -117.784246,
         "maxLat": 33.7674456
       }
@@ -3420,7 +3420,7 @@
     {
       "parentToken": "80dcdc4",
       "path": "80d/80dcdc4.json",
-      "count": 788,
+      "count": 674,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 33.6768743,
@@ -3431,10 +3431,10 @@
     {
       "parentToken": "80dcdcc",
       "path": "80d/80dcdcc.json",
-      "count": 903,
+      "count": 797,
       "bbox": {
         "minLng": -117.784246,
-        "minLat": 33.6876441,
+        "minLat": 33.6887132,
         "maxLng": -117.7373373,
         "maxLat": 33.7386927
       }
@@ -3442,10 +3442,10 @@
     {
       "parentToken": "80dcdd4",
       "path": "80d/80dcdd4.json",
-      "count": 769,
+      "count": 684,
       "bbox": {
         "minLng": -117.784246,
-        "minLat": 33.6488046,
+        "minLat": 33.6488719,
         "maxLng": -117.7373373,
         "maxLat": 33.6986847
       }
@@ -3453,7 +3453,7 @@
     {
       "parentToken": "80dcddc",
       "path": "80d/80dcddc.json",
-      "count": 1322,
+      "count": 1050,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 33.6349715,
@@ -3464,10 +3464,10 @@
     {
       "parentToken": "80dcde4",
       "path": "80d/80dcde4.json",
-      "count": 1731,
+      "count": 1625,
       "bbox": {
         "minLng": -117.8780275,
-        "minLat": 33.6246181,
+        "minLat": 33.6247967,
         "maxLng": -117.8311428,
         "maxLat": 33.6751588
       }
@@ -3475,7 +3475,7 @@
     {
       "parentToken": "80dcdec",
       "path": "80d/80dcdec.json",
-      "count": 857,
+      "count": 778,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 33.6647976,
@@ -3486,7 +3486,7 @@
     {
       "parentToken": "80dcdf4",
       "path": "80d/80dcdf4.json",
-      "count": 957,
+      "count": 830,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 33.65478,
@@ -3497,7 +3497,7 @@
     {
       "parentToken": "80dcdfc",
       "path": "80d/80dcdfc.json",
-      "count": 821,
+      "count": 738,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 33.6122822,
@@ -3508,18 +3508,18 @@
     {
       "parentToken": "80dce04",
       "path": "80d/80dce04.json",
-      "count": 870,
+      "count": 825,
       "bbox": {
         "minLng": -117.9249002,
         "minLat": 33.5924178,
         "maxLng": -117.8780275,
-        "maxLat": 33.6228316
+        "maxLat": 33.6220082
       }
     },
     {
       "parentToken": "80dce0c",
       "path": "80d/80dce0c.json",
-      "count": 593,
+      "count": 510,
       "bbox": {
         "minLng": -117.8780275,
         "minLat": 33.5869185,
@@ -3530,7 +3530,7 @@
     {
       "parentToken": "80dce14",
       "path": "80d/80dce14.json",
-      "count": 128,
+      "count": 125,
       "bbox": {
         "minLng": -117.8597146,
         "minLat": 33.5644857,
@@ -3541,9 +3541,9 @@
     {
       "parentToken": "80dce44",
       "path": "80d/80dce44.json",
-      "count": 76,
+      "count": 62,
       "bbox": {
-        "minLng": -117.818687,
+        "minLng": -117.8179543,
         "minLat": 33.5414939,
         "maxLng": -117.784246,
         "maxLat": 33.5564999
@@ -3552,9 +3552,9 @@
     {
       "parentToken": "80dce54",
       "path": "80d/80dce54.json",
-      "count": 158,
+      "count": 156,
       "bbox": {
-        "minLng": -117.7695883,
+        "minLng": -117.7681225,
         "minLat": 33.5099219,
         "maxLng": -117.7373373,
         "maxLat": 33.532784
@@ -3563,7 +3563,7 @@
     {
       "parentToken": "80dce5c",
       "path": "80d/80dce5c.json",
-      "count": 331,
+      "count": 309,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 33.5260349,
@@ -3574,18 +3574,18 @@
     {
       "parentToken": "80dce64",
       "path": "80d/80dce64.json",
-      "count": 217,
+      "count": 216,
       "bbox": {
         "minLng": -117.7827803,
         "minLat": 33.568776,
         "maxLng": -117.7373373,
-        "maxLat": 33.6117189
+        "maxLat": 33.6113897
       }
     },
     {
       "parentToken": "80dce6c",
       "path": "80d/80dce6c.json",
-      "count": 203,
+      "count": 198,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 33.5565441,
@@ -3596,7 +3596,7 @@
     {
       "parentToken": "80dce74",
       "path": "80d/80dce74.json",
-      "count": 550,
+      "count": 519,
       "bbox": {
         "minLng": -117.8311428,
         "minLat": 33.6026914,
@@ -3607,18 +3607,18 @@
     {
       "parentToken": "80dce7c",
       "path": "80d/80dce7c.json",
-      "count": 393,
+      "count": 366,
       "bbox": {
         "minLng": -117.784246,
         "minLat": 33.6061644,
         "maxLng": -117.7373373,
-        "maxLat": 33.657235
+        "maxLat": 33.6563458
       }
     },
     {
       "parentToken": "80dce84",
       "path": "80d/80dce84.json",
-      "count": 657,
+      "count": 598,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.6179008,
@@ -3629,7 +3629,7 @@
     {
       "parentToken": "80dce8c",
       "path": "80d/80dce8c.json",
-      "count": 639,
+      "count": 558,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.5753504,
@@ -3640,7 +3640,7 @@
     {
       "parentToken": "80dce94",
       "path": "80d/80dce94.json",
-      "count": 343,
+      "count": 304,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 33.589759,
@@ -3651,7 +3651,7 @@
     {
       "parentToken": "80dce9c",
       "path": "80d/80dce9c.json",
-      "count": 518,
+      "count": 459,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 33.6278441,
@@ -3684,7 +3684,7 @@
     {
       "parentToken": "80dcee4",
       "path": "80d/80dcee4.json",
-      "count": 354,
+      "count": 340,
       "bbox": {
         "minLng": -117.6889503,
         "minLat": 33.508456,
@@ -3695,18 +3695,18 @@
     {
       "parentToken": "80dceec",
       "path": "80d/80dceec.json",
-      "count": 236,
+      "count": 215,
       "bbox": {
         "minLng": -117.6904167,
         "minLat": 33.548607,
         "maxLng": -117.6596187,
-        "maxLat": 33.593329
+        "maxLat": 33.5926833
       }
     },
     {
       "parentToken": "80dcef4",
       "path": "80d/80dcef4.json",
-      "count": 734,
+      "count": 700,
       "bbox": {
         "minLng": -117.7373373,
         "minLat": 33.5396613,
@@ -3717,7 +3717,7 @@
     {
       "parentToken": "80dcefc",
       "path": "80d/80dcefc.json",
-      "count": 179,
+      "count": 173,
       "bbox": {
         "minLng": -117.7248752,
         "minLat": 33.5185258,
@@ -3739,7 +3739,7 @@
     {
       "parentToken": "80dd1fc",
       "path": "80d/80dd1fc.json",
-      "count": 40,
+      "count": 38,
       "bbox": {
         "minLng": -117.9314907,
         "minLat": 33.6054783,
@@ -3750,18 +3750,18 @@
     {
       "parentToken": "80dd204",
       "path": "80d/80dd204.json",
-      "count": 584,
+      "count": 533,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.6103137,
         "maxLng": -117.9249002,
-        "maxLat": 33.6518801
+        "maxLat": 33.6517362
       }
     },
     {
       "parentToken": "80dd20c",
       "path": "80d/80dd20c.json",
-      "count": 800,
+      "count": 757,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.6418801,
@@ -3772,7 +3772,7 @@
     {
       "parentToken": "80dd214",
       "path": "80d/80dd214.json",
-      "count": 435,
+      "count": 393,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 33.6399073,
@@ -3783,7 +3783,7 @@
     {
       "parentToken": "80dd21c",
       "path": "80d/80dd21c.json",
-      "count": 43,
+      "count": 39,
       "bbox": {
         "minLng": -117.9790814,
         "minLat": 33.6352586,
@@ -3805,7 +3805,7 @@
     {
       "parentToken": "80dd244",
       "path": "80d/80dd244.json",
-      "count": 575,
+      "count": 570,
       "bbox": {
         "minLng": -118.0566638,
         "minLat": 33.6705299,
@@ -3816,7 +3816,7 @@
     {
       "parentToken": "80dd254",
       "path": "80d/80dd254.json",
-      "count": 106,
+      "count": 91,
       "bbox": {
         "minLng": -118.0895894,
         "minLat": 33.7107587,
@@ -3827,29 +3827,29 @@
     {
       "parentToken": "80dd25c",
       "path": "80d/80dd25c.json",
-      "count": 261,
+      "count": 244,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 33.7032683,
         "maxLng": -118.0186087,
-        "maxLat": 33.7536237
+        "maxLat": 33.7529804
       }
     },
     {
       "parentToken": "80dd264",
       "path": "80d/80dd264.json",
-      "count": 486,
+      "count": 448,
       "bbox": {
         "minLng": -118.0178768,
         "minLat": 33.7149906,
         "maxLng": -117.9717606,
-        "maxLat": 33.7646665
+        "maxLat": 33.7640231
       }
     },
     {
       "parentToken": "80dd26c",
       "path": "80d/80dd26c.json",
-      "count": 472,
+      "count": 442,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 33.673974,
@@ -3860,7 +3860,7 @@
     {
       "parentToken": "80dd274",
       "path": "80d/80dd274.json",
-      "count": 870,
+      "count": 838,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.6831005,
@@ -3871,7 +3871,7 @@
     {
       "parentToken": "80dd27c",
       "path": "80d/80dd27c.json",
-      "count": 351,
+      "count": 319,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.7268167,
@@ -3882,18 +3882,18 @@
     {
       "parentToken": "80dd284",
       "path": "80d/80dd284.json",
-      "count": 360,
+      "count": 266,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.7656692,
         "maxLng": -117.9249002,
-        "maxLat": 33.8181531
+        "maxLat": 33.8177942
       }
     },
     {
       "parentToken": "80dd28c",
       "path": "80d/80dd28c.json",
-      "count": 291,
+      "count": 246,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 33.7547031,
@@ -3904,10 +3904,10 @@
     {
       "parentToken": "80dd294",
       "path": "80d/80dd294.json",
-      "count": 385,
+      "count": 313,
       "bbox": {
         "minLng": -118.0186087,
-        "minLat": 33.7955053,
+        "minLat": 33.7961483,
         "maxLng": -117.9717606,
         "maxLat": 33.8478092
       }
@@ -3915,7 +3915,7 @@
     {
       "parentToken": "80dd29c",
       "path": "80d/80dd29c.json",
-      "count": 393,
+      "count": 321,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.8097132,
@@ -3926,7 +3926,7 @@
     {
       "parentToken": "80dd2a4",
       "path": "80d/80dd2a4.json",
-      "count": 620,
+      "count": 583,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.8485286,
@@ -3937,7 +3937,7 @@
     {
       "parentToken": "80dd2ac",
       "path": "80d/80dd2ac.json",
-      "count": 441,
+      "count": 396,
       "bbox": {
         "minLng": -117.9717606,
         "minLat": 33.8938003,
@@ -3948,29 +3948,29 @@
     {
       "parentToken": "80dd2b4",
       "path": "80d/80dd2b4.json",
-      "count": 643,
+      "count": 616,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 33.8779572,
         "maxLng": -117.9717606,
-        "maxLat": 33.9285945
+        "maxLat": 33.927898
       }
     },
     {
       "parentToken": "80dd2bc",
       "path": "80d/80dd2bc.json",
-      "count": 766,
+      "count": 687,
       "bbox": {
         "minLng": -118.0186087,
         "minLat": 33.8382708,
         "maxLng": -117.9717606,
-        "maxLat": 33.8862953
+        "maxLat": 33.8844448
       }
     },
     {
       "parentToken": "80dd2c4",
       "path": "80d/80dd2c4.json",
-      "count": 637,
+      "count": 586,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 33.8247521,
@@ -3981,7 +3981,7 @@
     {
       "parentToken": "80dd2cc",
       "path": "80d/80dd2cc.json",
-      "count": 443,
+      "count": 403,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 33.8660528,
@@ -3992,7 +3992,7 @@
     {
       "parentToken": "80dd2d4",
       "path": "80d/80dd2d4.json",
-      "count": 541,
+      "count": 504,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 33.8543103,
@@ -4003,7 +4003,7 @@
     {
       "parentToken": "80dd2dc",
       "path": "80d/80dd2dc.json",
-      "count": 840,
+      "count": 799,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 33.8147429,
@@ -4014,7 +4014,7 @@
     {
       "parentToken": "80dd2e4",
       "path": "80d/80dd2e4.json",
-      "count": 1254,
+      "count": 1221,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 33.7740524,
@@ -4025,7 +4025,7 @@
     {
       "parentToken": "80dd2ec",
       "path": "80d/80dd2ec.json",
-      "count": 1238,
+      "count": 1193,
       "bbox": {
         "minLng": -118.0654445,
         "minLat": 33.7836146,
@@ -4036,10 +4036,10 @@
     {
       "parentToken": "80dd2f4",
       "path": "80d/80dd2f4.json",
-      "count": 418,
+      "count": 385,
       "bbox": {
         "minLng": -118.0654445,
-        "minLat": 33.7428201,
+        "minLat": 33.7525463,
         "maxLng": -118.0186087,
         "maxLat": 33.7951452
       }
@@ -4047,7 +4047,7 @@
     {
       "parentToken": "80dd2fc",
       "path": "80d/80dd2fc.json",
-      "count": 455,
+      "count": 416,
       "bbox": {
         "minLng": -118.1122679,
         "minLat": 33.7341661,
@@ -4058,29 +4058,29 @@
     {
       "parentToken": "80dd304",
       "path": "80d/80dd304.json",
-      "count": 404,
+      "count": 369,
       "bbox": {
-        "minLng": -118.1590786,
+        "minLng": -118.157616,
         "minLat": 33.7395599,
         "maxLng": -118.1122679,
-        "maxLat": 33.7706215
+        "maxLat": 33.7701378
       }
     },
     {
       "parentToken": "80dd30c",
       "path": "80d/80dd30c.json",
-      "count": 10,
+      "count": 8,
       "bbox": {
         "minLng": -118.1919849,
         "minLat": 33.7404942,
-        "maxLng": -118.1605413,
+        "maxLng": -118.1612726,
         "maxLat": 33.7534435
       }
     },
     {
       "parentToken": "80dd314",
       "path": "80d/80dd314.json",
-      "count": 1138,
+      "count": 1048,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 33.7525383,
@@ -4091,7 +4091,7 @@
     {
       "parentToken": "80dd31c",
       "path": "80d/80dd31c.json",
-      "count": 929,
+      "count": 882,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 33.7605002,
@@ -4102,7 +4102,7 @@
     {
       "parentToken": "80dd324",
       "path": "80d/80dd324.json",
-      "count": 1366,
+      "count": 1272,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 33.8035513,
@@ -4113,7 +4113,7 @@
     {
       "parentToken": "80dd32c",
       "path": "80d/80dd32c.json",
-      "count": 450,
+      "count": 367,
       "bbox": {
         "minLng": -118.1590786,
         "minLat": 33.8450022,
@@ -4124,18 +4124,18 @@
     {
       "parentToken": "80dd334",
       "path": "80d/80dd334.json",
-      "count": 514,
+      "count": 464,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 33.8313145,
         "maxLng": -118.1590786,
-        "maxLat": 33.8838197
+        "maxLat": 33.8788965
       }
     },
     {
       "parentToken": "80dd33c",
       "path": "80d/80dd33c.json",
-      "count": 653,
+      "count": 605,
       "bbox": {
         "minLng": -118.2058768,
         "minLat": 33.7900335,
@@ -4146,10 +4146,10 @@
     {
       "parentToken": "80dd344",
       "path": "80d/80dd344.json",
-      "count": 352,
+      "count": 335,
       "bbox": {
         "minLng": -118.2482767,
-        "minLat": 33.7814268,
+        "minLat": 33.7820547,
         "maxLng": -118.2058768,
         "maxLat": 33.8311331
       }
@@ -4157,7 +4157,7 @@
     {
       "parentToken": "80dd34c",
       "path": "80d/80dd34c.json",
-      "count": 322,
+      "count": 311,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 33.8220603,
@@ -4168,10 +4168,10 @@
     {
       "parentToken": "80dd354",
       "path": "80d/80dd354.json",
-      "count": 358,
+      "count": 315,
       "bbox": {
         "minLng": -118.299435,
-        "minLat": 33.8080671,
+        "minLat": 33.8105277,
         "maxLng": -118.2526623,
         "maxLat": 33.8605935
       }
@@ -4179,7 +4179,7 @@
     {
       "parentToken": "80dd35c",
       "path": "80d/80dd35c.json",
-      "count": 560,
+      "count": 536,
       "bbox": {
         "minLng": -118.299435,
         "minLat": 33.7713428,
@@ -4190,18 +4190,18 @@
     {
       "parentToken": "80dd364",
       "path": "80d/80dd364.json",
-      "count": 382,
+      "count": 344,
       "bbox": {
         "minLng": -118.299435,
         "minLat": 33.7284209,
         "maxLng": -118.2526623,
-        "maxLat": 33.7759676
+        "maxLat": 33.7747807
       }
     },
     {
       "parentToken": "80dd36c",
       "path": "80d/80dd36c.json",
-      "count": 198,
+      "count": 188,
       "bbox": {
         "minLng": -118.2526623,
         "minLat": 33.7418803,
@@ -4223,18 +4223,18 @@
     {
       "parentToken": "80dd37c",
       "path": "80d/80dd37c.json",
-      "count": 197,
+      "count": 187,
       "bbox": {
         "minLng": -118.299435,
         "minLat": 33.704845,
-        "maxLng": -118.2650875,
+        "maxLng": -118.2658184,
         "maxLat": 33.731047
       }
     },
     {
       "parentToken": "80dd484",
       "path": "80d/80dd484.json",
-      "count": 21,
+      "count": 20,
       "bbox": {
         "minLng": -118.325739,
         "minLat": 33.7099148,
@@ -4245,18 +4245,18 @@
     {
       "parentToken": "80dd494",
       "path": "80d/80dd494.json",
-      "count": 165,
+      "count": 144,
       "bbox": {
         "minLng": -118.3922114,
         "minLat": 33.7278346,
-        "maxLng": -118.3461948,
+        "maxLng": -118.3469253,
         "maxLat": 33.7540634
       }
     },
     {
       "parentToken": "80dd49c",
       "path": "80d/80dd49c.json",
-      "count": 579,
+      "count": 528,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 33.7189709,
@@ -4267,7 +4267,7 @@
     {
       "parentToken": "80dd4a4",
       "path": "80d/80dd4a4.json",
-      "count": 490,
+      "count": 428,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 33.7599843,
@@ -4278,7 +4278,7 @@
     {
       "parentToken": "80dd4ac",
       "path": "80d/80dd4ac.json",
-      "count": 458,
+      "count": 391,
       "bbox": {
         "minLng": -118.3461948,
         "minLat": 33.7973279,
@@ -4289,7 +4289,7 @@
     {
       "parentToken": "80dd4b4",
       "path": "80d/80dd4b4.json",
-      "count": 582,
+      "count": 477,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 33.787668,
@@ -4300,7 +4300,7 @@
     {
       "parentToken": "80dd4bc",
       "path": "80d/80dd4bc.json",
-      "count": 399,
+      "count": 370,
       "bbox": {
         "minLng": -118.3929417,
         "minLat": 33.7443191,
@@ -4311,21 +4311,21 @@
     {
       "parentToken": "80dd4c4",
       "path": "80d/80dd4c4.json",
-      "count": 287,
+      "count": 256,
       "bbox": {
         "minLng": -118.4221519,
         "minLat": 33.7407592,
         "maxLng": -118.3929417,
-        "maxLat": 33.7777035
+        "maxLat": 33.777156
       }
     },
     {
       "parentToken": "80dd4cc",
       "path": "80d/80dd4cc.json",
-      "count": 36,
+      "count": 29,
       "bbox": {
-        "minLng": -118.4221519,
-        "minLat": 33.7779071,
+        "minLng": -118.4214217,
+        "minLat": 33.7787313,
         "maxLng": -118.3929417,
         "maxLat": 33.8076624
       }
@@ -4333,18 +4333,18 @@
     {
       "parentToken": "80dd4ec",
       "path": "80d/80dd4ec.json",
-      "count": 33,
+      "count": 20,
       "bbox": {
         "minLng": -118.4031659,
         "minLat": 33.7364413,
         "maxLng": -118.393672,
-        "maxLat": 33.7424883
+        "maxLat": 33.7423059
       }
     },
     {
       "parentToken": "80e81e4",
       "path": "80e/80e81e4.json",
-      "count": 129,
+      "count": 121,
       "bbox": {
         "minLng": -118.7125117,
         "minLat": 34.0292851,
@@ -4366,7 +4366,7 @@
     {
       "parentToken": "80e81fc",
       "path": "80e/80e81fc.json",
-      "count": 226,
+      "count": 218,
       "bbox": {
         "minLng": -118.7198004,
         "minLat": 34.0310806,
@@ -4377,7 +4377,7 @@
     {
       "parentToken": "80e8204",
       "path": "80e/80e8204.json",
-      "count": 500,
+      "count": 499,
       "bbox": {
         "minLng": -118.7198004,
         "minLat": 34.0749135,
@@ -4388,7 +4388,7 @@
     {
       "parentToken": "80e820c",
       "path": "80e/80e820c.json",
-      "count": 368,
+      "count": 357,
       "bbox": {
         "minLng": -118.7015779,
         "minLat": 34.1176195,
@@ -4410,7 +4410,7 @@
     {
       "parentToken": "80e8274",
       "path": "80e/80e8274.json",
-      "count": 392,
+      "count": 391,
       "bbox": {
         "minLng": -118.7030357,
         "minLat": 34.1575288,
@@ -4421,18 +4421,18 @@
     {
       "parentToken": "80e827c",
       "path": "80e/80e827c.json",
-      "count": 188,
+      "count": 187,
       "bbox": {
         "minLng": -118.7074093,
         "minLat": 34.2009208,
-        "maxLng": -118.6746046,
-        "maxLat": 34.2360801
+        "maxLng": -118.6767918,
+        "maxLat": 34.2240912
       }
     },
     {
       "parentToken": "80e8284",
       "path": "80e/80e8284.json",
-      "count": 537,
+      "count": 519,
       "bbox": {
         "minLng": -118.7198004,
         "minLat": 34.2466593,
@@ -4454,7 +4454,7 @@
     {
       "parentToken": "80e829c",
       "path": "80e/80e829c.json",
-      "count": 626,
+      "count": 598,
       "bbox": {
         "minLng": -118.7037647,
         "minLat": 34.2810188,

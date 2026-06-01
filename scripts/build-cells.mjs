@@ -132,26 +132,30 @@ function addPolygonCells(f) {
   const [minLon, minLat, maxLon, maxLat] = bboxOfGeometry(f.geometry);
   if (![minLon, minLat, maxLon, maxLat].every(Number.isFinite)) return;
 
-  // Always keep the representative point. Small polygons can otherwise fall between samples.
+  const seenTokens = new Set();
+  const addIfCellCenterInside = (lon, lat) => {
+    const id = cellIdFor(lon, lat);
+    const token = id.toToken();
+    if (seenTokens.has(token)) return;
+    seenTokens.add(token);
+    const center = id.toLatLng();
+    const clon = center.lngDegrees;
+    const clat = center.latDegrees;
+    if (booleanPointInPolygon(point([clon, clat]), f)) addCellForFeature(f, clon, clat);
+  };
+
+  // Try the representative point first, but only keep it if its S2 cell center is inside the polygon.
   if (f.properties.center) {
     const [lon, lat] = f.properties.center;
-    addCellForFeature(f, lon, lat);
+    addIfCellCenterInside(lon, lat);
   }
 
   const latStep = metersToLatDegrees(POLYGON_SAMPLE_METERS);
   const lonStep = metersToLonDegrees(POLYGON_SAMPLE_METERS, (minLat + maxLat) / 2);
-  const seenTokens = new Set();
 
   for (let lat = minLat; lat <= maxLat; lat += latStep) {
     for (let lon = minLon; lon <= maxLon; lon += lonStep) {
-      const id = cellIdFor(lon, lat);
-      const token = id.toToken();
-      if (seenTokens.has(token)) continue;
-      seenTokens.add(token);
-      const center = id.toLatLng();
-      const clon = center.lngDegrees;
-      const clat = center.latDegrees;
-      if (booleanPointInPolygon(point([clon, clat]), f)) addCellForFeature(f, clon, clat);
+      addIfCellCenterInside(lon, lat);
     }
   }
 }
