@@ -429,6 +429,12 @@ function decorsAt(lat, lon) {
   return scanAt(lat, lon).decors;
 }
 
+function boundsAround(lat, lon, radiusMeters) {
+  const [south, west] = offsetMeters(lat, lon, -radiusMeters, -radiusMeters);
+  const [north, east] = offsetMeters(lat, lon, radiusMeters, radiusMeters);
+  return L.latLngBounds([south, west], [north, east]);
+}
+
 function candidateIsPure(lat, lon, target) {
   const { decors } = scanAt(lat, lon);
   return decors.has(target) && [...decors].every(d => d === target);
@@ -488,12 +494,24 @@ function selectedTargets() {
   return [$('target-decor').value, $('target-decor-2').value].filter(Boolean);
 }
 
+async function loadDetectorCoverageForSeeds(seedCells) {
+  const keys = new Set();
+  for (const cell of seedCells) {
+    const [lon, lat] = cell.properties.center;
+    for (const key of tileKeysForBounds(boundsAround(lat, lon, 200), 0)) keys.add(key);
+  }
+  if (keys.size) await loadTileKeys([...keys]);
+}
+
 async function expandSearchUntilEnough(getSeedCells, predicate) {
   const origin = lastScanLatLng || map.getCenter();
   let results = [];
   for (let ring = 0; ring <= MAX_SOLVER_TILE_RING; ring++) {
     await loadTileRingAround(origin.lat, origin.lng, ring);
-    results = searchCandidatePositions(getSeedCells(), predicate, SOLVER_K);
+    let seedCells = getSeedCells();
+    await loadDetectorCoverageForSeeds(seedCells);
+    seedCells = getSeedCells();
+    results = searchCandidatePositions(seedCells, predicate, SOLVER_K);
     if (results.length >= SOLVER_K) break;
   }
   return results;
