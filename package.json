@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:data": "node scripts/build-data.mjs",
     "serve": "python3 -m http.server 5173 -d public",
-    "dev": "npm run build:data && npm run serve",
+    "dev": "npm run serve",
     "build:cells": "node scripts/build-cells.mjs",
     "build": "npm run build:geofabrik",
     "build:geofabrik": "node scripts/build-geofabrik.mjs && npm run build:cells && npm run build:tiles",
