@@ -225,7 +225,7 @@ function tileKeysForBounds(bounds, pad = 0) {
 function maskToDecors(mask) {
   const decors = [];
   for (let i = 0; i < tileIndex.decorTypes.length; i++) {
-    if (mask & (2 ** i)) decors.push(tileIndex.decorTypes[i]);
+    if (Math.floor(mask / (2 ** i)) % 2 === 1) decors.push(tileIndex.decorTypes[i]);
   }
   return decors;
 }
