@@ -290,8 +290,7 @@ async function loadTileRingAround(lat, lon, ring) {
     }))
     .sort((a, b) => (b.contains - a.contains) || a.dist - b.dist);
   const batchSize = ring === 0 ? 1 : 8;
-  const start = ring === 0 ? 0 : 1 + (ring - 1) * batchSize;
-  return loadTileKeys(unloaded.slice(start, start + batchSize).map(t => t.tile.parentToken));
+  return loadTileKeys(unloaded.slice(0, batchSize).map(t => t.tile.parentToken));
 }
 
 async function loadDecorData() {
