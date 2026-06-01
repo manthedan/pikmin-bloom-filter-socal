@@ -478,14 +478,15 @@ function searchCandidatePositions(seedCells, predicate, k = SOLVER_K) {
 
 function showSolverResults(results, label) {
   if (!results.length) {
-    $('solver-output').textContent = `No ${label} spot found in this dataset.`;
+    const loaded = tileIndex ? `${loadedTileKeys.size}/${tileIndex.tileCount}` : 'nearby';
+    $('solver-output').textContent = `No nearby ${label} spot found in the loaded search area (${loaded} chunks searched). Try panning closer to the area you want and search again.`;
     return;
   }
   const before = lastScanLatLng;
   const best = results[0];
   scanDetector(L.latLng(best.lat, best.lon));
   map.setView([best.lat, best.lon], Math.max(map.getZoom(), 17));
-  $('solver-output').innerHTML = `<strong>${results.length} closest ${label} spot(s)</strong> from ${before ? 'last scan' : 'map center'}:<ol>` +
+  $('solver-output').innerHTML = `<strong>${results.length} closest nearby ${label} spot(s)</strong> from ${before ? 'last scan' : 'map center'}:<ol>` +
     results.map(r => `<li>${Math.round(r.dist)}m · ${r.cells} cells · <a target="_blank" href="https://maps.google.com/?q=${r.lat},${r.lon}">Google Maps</a><br><small>Includes: ${r.decors.map(escapeHtml).join(', ')}</small></li>`).join('') +
     `</ol>`;
 }

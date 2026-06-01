@@ -7,6 +7,7 @@ const LEVEL = Number(process.env.S2_LEVEL || 17);
 const POLYGON_SAMPLE_METERS = Number(process.env.POLYGON_SAMPLE_METERS || 35);
 const LINE_SAMPLE_METERS = Number(process.env.LINE_SAMPLE_METERS || 25);
 const WATERSIDE_LINE_BUFFER_METERS = Number(process.env.WATERSIDE_LINE_BUFFER_METERS || 35);
+const AREA_DECORS = new Set(['Park', 'Forest', 'Waterside', 'Beach', 'Mountain', 'Zoo', 'Theme Park', 'Airport', 'Stadium']);
 const IN = new URL('../public/data/decor-spots.geojson', import.meta.url);
 const OUT = new URL(`../public/data/decor-cells-l${LEVEL}.geojson`, import.meta.url);
 
@@ -144,10 +145,19 @@ function addPolygonCells(f) {
     if (booleanPointInPolygon(point([clon, clat]), f)) addCellForFeature(f, clon, clat);
   };
 
-  // Try the representative point first, but only keep it if its S2 cell center is inside the polygon.
+  // For destination POIs mapped as small building polygons, keep the containing cell even when
+  // the S2 cell center falls just outside the footprint. Large ambient areas still require
+  // interior cell centers so parks/water do not bleed outside their polygons.
   if (f.properties.center) {
     const [lon, lat] = f.properties.center;
-    addIfCellCenterInside(lon, lat);
+    const hasDestinationDecor = f.properties.decors.some(d => !AREA_DECORS.has(d));
+    if (hasDestinationDecor) {
+      const token = cellIdFor(lon, lat).toToken();
+      seenTokens.add(token);
+      addCellForFeature(f, lon, lat);
+    } else {
+      addIfCellCenterInside(lon, lat);
+    }
   }
 
   const latStep = metersToLatDegrees(POLYGON_SAMPLE_METERS);
