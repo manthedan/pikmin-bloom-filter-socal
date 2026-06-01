@@ -551,4 +551,5 @@ map.on('moveend', () => {
 });
 
 initBasemapOnly();
-centerOnUser().finally(() => loadDecorData());
+loadDecorData();
+centerOnUser();
