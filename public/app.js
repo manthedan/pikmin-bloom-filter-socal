@@ -13,6 +13,7 @@ setTimeout(() => map.invalidateSize(), 250);
 window.addEventListener('resize', () => map.invalidateSize());
 
 const featureLayer = L.layerGroup().addTo(map);
+const emojiLayer = L.layerGroup().addTo(map);
 const detectorLayer = L.layerGroup().addTo(map);
 const userLayer = L.layerGroup().addTo(map);
 let allFeatures = [];
@@ -27,10 +28,14 @@ let tileIndex = null;
 let tileByKey = new Map();
 let loadedTileKeys = new Set();
 let loadedCellTokens = new Set();
+let featureLayersByToken = new Map();
 let decorDataReady = false;
 let loadDataPromise = null;
 let currentLocation = null;
 let solverInFlight = false;
+let activeTileFetches = 0;
+let tileFetchQueue = [];
+let loadingTilePromises = new Map();
 const SOLVER_K = 3;
 const BUCKET_DEGREES = 0.002;
 const INITIAL_TILE_PAD = 1;
@@ -38,6 +43,7 @@ const DETECTOR_TILE_PAD = 1;
 const MAX_SOLVER_TILE_RING = 5;
 const SOLVER_EXCLUDED_DECORS = new Set(['Park', 'Waterside', 'Roadside']);
 const TILE_INDEX_SCHEMA_VERSION = 2;
+const MAX_TILE_FETCHES = 6;
 
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
 const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Clothes Store', 'Makeup Store']);
@@ -163,29 +169,56 @@ function updateLoadedCounts() {
   $('total-count').textContent = `${cellFeatures.length.toLocaleString()} loaded cells${tileIndex ? ` / ${tileIndex.cellCount.toLocaleString()} total cells` : ''}`;
 }
 
+function createFeatureLayer(feature) {
+  const color = primaryColor(feature);
+  let layer;
+  if (feature.geometry.type === 'Point') {
+    const [lon, lat] = feature.geometry.coordinates;
+    layer = L.circleMarker([lat, lon], pointStyle(color));
+  } else {
+    layer = L.geoJSON(feature, {
+      style: { color, weight: 3, opacity: 0.8, fillColor: color, fillOpacity: 0.12 },
+      pointToLayer: (_, latlng) => L.circleMarker(latlng, pointStyle(color)),
+    });
+  }
+  layer.bindPopup(popup(feature));
+  return layer;
+}
+
+function restyleFeatureLayer(layer, feature) {
+  const color = primaryColor(feature);
+  if (layer.setStyle) {
+    layer.setStyle({ color, fillColor: color });
+  } else if (layer.eachLayer) {
+    layer.eachLayer(child => child.setStyle?.({ color, fillColor: color }));
+  }
+}
+
 function draw() {
-  featureLayer.clearLayers();
+  emojiLayer.clearLayers();
   let shown = 0;
   const bounds = [];
   for (const feature of allFeatures) {
-    if (!featureMatches(feature)) continue;
-    shown++;
-    const color = primaryColor(feature);
-    let layer;
-    if (feature.geometry.type === 'Point') {
-      const [lon, lat] = feature.geometry.coordinates;
-      layer = L.circleMarker([lat, lon], pointStyle(color));
-    } else {
-      layer = L.geoJSON(feature, {
-        style: { color, weight: 3, opacity: 0.8, fillColor: color, fillOpacity: 0.12 },
-        pointToLayer: (_, latlng) => L.circleMarker(latlng, pointStyle(color)),
-      });
+    const token = feature.properties.token || feature.id;
+    let layer = featureLayersByToken.get(token);
+    const matches = featureMatches(feature);
+    if (!matches) {
+      if (layer && featureLayer.hasLayer(layer)) featureLayer.removeLayer(layer);
+      continue;
     }
-    layer.bindPopup(popup(feature));
-    layer.addTo(featureLayer);
+
+    shown++;
+    if (!layer) {
+      layer = createFeatureLayer(feature);
+      featureLayersByToken.set(token, layer);
+    } else {
+      restyleFeatureLayer(layer, feature);
+    }
+    if (!featureLayer.hasLayer(layer)) layer.addTo(featureLayer);
+
     if (feature.properties.token && map.getZoom() >= 13) {
       const [lon, lat] = feature.properties.center;
-      const emoji = L.marker([lat, lon], {
+      L.marker([lat, lon], {
         interactive: false,
         icon: L.divIcon({
           className: 'decor-emoji-icon',
@@ -193,8 +226,7 @@ function draw() {
           iconSize: [44, 24],
           iconAnchor: [22, 12],
         }),
-      });
-      emoji.addTo(featureLayer);
+      }).addTo(emojiLayer);
     }
     const [lon, lat] = feature.properties.center;
     bounds.push([lat, lon]);
@@ -261,11 +293,40 @@ function compactChunkToFeatures(chunk) {
   });
 }
 
-async function loadTileKeys(keys) {
+function pumpTileFetchQueue() {
+  while (activeTileFetches < MAX_TILE_FETCHES && tileFetchQueue.length) {
+    const job = tileFetchQueue.shift();
+    activeTileFetches++;
+    job.run().then(job.resolve, job.reject).finally(() => {
+      activeTileFetches--;
+      pumpTileFetchQueue();
+    });
+  }
+}
+
+function scheduleTileFetch(key) {
+  if (loadingTilePromises.has(key)) return loadingTilePromises.get(key);
+  const promise = new Promise((resolve, reject) => {
+    tileFetchQueue.push({
+      resolve,
+      reject,
+      run: () => fetch(`./data/cell-tiles/${tileByKey.get(key).path}`).then(r => {
+        if (!r.ok) throw new Error(`Tile ${key} failed: HTTP ${r.status}`);
+        return r.json();
+      }),
+    });
+    pumpTileFetchQueue();
+  }).finally(() => loadingTilePromises.delete(key));
+  loadingTilePromises.set(key, promise);
+  return promise;
+}
+
+async function loadTileKeys(keys, options = {}) {
+  const { redraw = true } = options;
   const wanted = [...new Set(keys)].filter(key => tileByKey.has(key) && !loadedTileKeys.has(key));
   if (!wanted.length) return 0;
   $('generated').textContent = `Loading ${wanted.length} nearby chunk(s)…`;
-  const chunks = await Promise.all(wanted.map(key => fetch(`./data/cell-tiles/${tileByKey.get(key).path}`).then(r => r.json())));
+  const chunks = await Promise.all(wanted.map(scheduleTileFetch));
   let added = 0;
   for (const chunk of chunks) {
     for (const f of compactChunkToFeatures(chunk)) {
@@ -273,15 +334,15 @@ async function loadTileKeys(keys) {
       if (loadedCellTokens.has(token)) continue;
       loadedCellTokens.add(token);
       cellFeatures.push(f);
+      addCellToSpatialIndexes(f);
       added++;
     }
   }
   for (const key of wanted) loadedTileKeys.add(key);
   allFeatures = cellFeatures;
-  buildSpatialIndexes();
   updateLoadedCounts();
   $('generated').textContent = `${loadedTileKeys.size}/${tileIndex.tileCount} chunks loaded · ${cellFeatures.length.toLocaleString()} cells`;
-  draw();
+  if (redraw) draw();
   return added;
 }
 
@@ -290,7 +351,7 @@ async function loadTilesForCurrentView(pad = INITIAL_TILE_PAD) {
   return loadTileKeys(tileKeysForBounds(map.getBounds(), pad));
 }
 
-async function loadTileRingAround(lat, lon, ring) {
+async function loadTileRingAround(lat, lon, ring, options = {}) {
   if (!tileIndex) return 0;
   const unloaded = tileIndex.tiles
     .filter(t => !loadedTileKeys.has(t.parentToken))
@@ -301,7 +362,7 @@ async function loadTileRingAround(lat, lon, ring) {
     }))
     .sort((a, b) => (b.contains - a.contains) || a.dist - b.dist);
   const batchSize = ring === 0 ? 1 : 8;
-  return loadTileKeys(unloaded.slice(0, batchSize).map(t => t.tile.parentToken));
+  return loadTileKeys(unloaded.slice(0, batchSize).map(t => t.tile.parentToken), options);
 }
 
 async function loadDecorData() {
@@ -334,6 +395,7 @@ async function loadDecorDataInner() {
 function initBasemapOnly() {
   map.setView(COSTA_MESA_CENTER, 13);
   featureLayer.clearLayers();
+  emojiLayer.clearLayers();
   detectorLayer.clearLayers();
   userLayer.clearLayers();
   $('visible-count').textContent = '0';
@@ -372,19 +434,21 @@ function bucketKey(lat, lon) {
   return `${Math.floor(lat / BUCKET_DEGREES)},${Math.floor(lon / BUCKET_DEGREES)}`;
 }
 
+function addCellToSpatialIndexes(cell) {
+  const [lon, lat] = cell.properties.center;
+  const key = bucketKey(lat, lon);
+  if (!cellBuckets.has(key)) cellBuckets.set(key, []);
+  cellBuckets.get(key).push(cell);
+  for (const decor of cell.properties.decors) {
+    if (!decorToCells.has(decor)) decorToCells.set(decor, []);
+    decorToCells.get(decor).push(cell);
+  }
+}
+
 function buildSpatialIndexes() {
   cellBuckets = new Map();
   decorToCells = new Map();
-  for (const cell of cellFeatures) {
-    const [lon, lat] = cell.properties.center;
-    const key = bucketKey(lat, lon);
-    if (!cellBuckets.has(key)) cellBuckets.set(key, []);
-    cellBuckets.get(key).push(cell);
-    for (const decor of cell.properties.decors) {
-      if (!decorToCells.has(decor)) decorToCells.set(decor, []);
-      decorToCells.get(decor).push(cell);
-    }
-  }
+  for (const cell of cellFeatures) addCellToSpatialIndexes(cell);
 }
 
 function renderTargetOptions() {
@@ -509,26 +573,27 @@ function selectedTargets() {
   return [$('target-decor').value, $('target-decor-2').value].filter(Boolean);
 }
 
-async function loadDetectorCoverageForSeeds(seedCells) {
+async function loadDetectorCoverageForSeeds(seedCells, options = {}) {
   const keys = new Set();
   for (const cell of seedCells) {
     const [lon, lat] = cell.properties.center;
     for (const key of tileKeysForBounds(boundsAround(lat, lon, 200), 0)) keys.add(key);
   }
-  if (keys.size) await loadTileKeys([...keys]);
+  if (keys.size) await loadTileKeys([...keys], options);
 }
 
 async function expandSearchUntilEnough(getSeedCells, predicate) {
   const origin = lastScanLatLng || map.getCenter();
   let results = [];
   for (let ring = 0; ring <= MAX_SOLVER_TILE_RING; ring++) {
-    await loadTileRingAround(origin.lat, origin.lng, ring);
+    await loadTileRingAround(origin.lat, origin.lng, ring, { redraw: false });
     let seedCells = getSeedCells();
-    await loadDetectorCoverageForSeeds(seedCells);
+    await loadDetectorCoverageForSeeds(seedCells, { redraw: false });
     seedCells = getSeedCells();
     results = searchCandidatePositions(seedCells, predicate, SOLVER_K);
     if (results.length >= SOLVER_K) break;
   }
+  draw();
   return results;
 }
 
