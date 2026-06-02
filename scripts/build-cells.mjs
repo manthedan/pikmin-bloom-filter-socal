@@ -104,6 +104,13 @@ function addCellForFeature(f, lon, lat) {
 }
 
 function addLineBufferedCells(f, bufferMeters) {
+  const seenTokens = new Set();
+  const addBufferedCell = (lon, lat) => {
+    const token = cellIdFor(lon, lat).toToken();
+    if (seenTokens.has(token)) return;
+    seenTokens.add(token);
+    addCellForFeature(f, lon, lat);
+  };
   for (const line of lineStringsOfGeometry(f.geometry)) {
     for (let i = 1; i < line.length; i++) {
       const [lon1, lat1] = line[i - 1];
@@ -122,7 +129,7 @@ function addLineBufferedCells(f, bufferMeters) {
         const by = y1 + dy * t;
         for (let off = -bufferMeters; off <= bufferMeters; off += LINE_SAMPLE_METERS) {
           const [lon, lat] = metersToLonLat(bx + nx * off, by + ny * off, refLat);
-          addCellForFeature(f, lon, lat);
+          addBufferedCell(lon, lat);
         }
       }
     }

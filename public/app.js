@@ -26,15 +26,18 @@ let decorToCells = new Map();
 let tileIndex = null;
 let tileByKey = new Map();
 let loadedTileKeys = new Set();
+let loadedCellTokens = new Set();
 let decorDataReady = false;
 let loadDataPromise = null;
 let currentLocation = null;
+let solverInFlight = false;
 const SOLVER_K = 3;
 const BUCKET_DEGREES = 0.002;
 const INITIAL_TILE_PAD = 1;
 const DETECTOR_TILE_PAD = 1;
 const MAX_SOLVER_TILE_RING = 5;
 const SOLVER_EXCLUDED_DECORS = new Set(['Park', 'Waterside', 'Roadside']);
+const TILE_INDEX_SCHEMA_VERSION = 2;
 
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
 const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Clothes Store', 'Makeup Store']);
@@ -116,23 +119,31 @@ function offsetMeters(lat, lon, east, north) {
   return [lat + north / 111320, lon + east / (111320 * Math.cos(lat * Math.PI / 180))];
 }
 
+function googleMapsHref(lat, lon) {
+  const safeLat = Number(lat);
+  const safeLon = Number(lon);
+  if (!Number.isFinite(safeLat) || !Number.isFinite(safeLon)) return 'https://maps.google.com/';
+  return `https://maps.google.com/?q=${encodeURIComponent(`${safeLat.toFixed(6)},${safeLon.toFixed(6)}`)}`;
+}
+
 function popup(feature) {
   const p = feature.properties;
   const colors = p.decorColors || p.colorByDecor || {};
   const badges = p.decors.map(d => `<span class="badge" style="background:${colors[d] || '#555'}">${d}</span>`).join('');
   const [lon, lat] = p.center;
+  const mapsHref = googleMapsHref(lat, lon);
   if (p.token) {
     const spots = (p.spots || []).map(s => `• ${escapeHtml(s.name)} (${s.decors.map(escapeHtml).join(', ')})`).join('<br>');
     return `<div class="popup-title">S2 cell ${escapeHtml(p.token)}</div>
       <div class="badges">${badges}</div>
       <div>${p.spotCount || 0} OSM candidate spot(s) in this approximate cell</div>
-      <div><a target="_blank" rel="noopener" href="https://maps.google.com/?q=${lat},${lon}">open center in Google Maps</a></div>
+      <div><a target="_blank" rel="noopener" href="${mapsHref}">open center in Google Maps</a></div>
       <div class="tags">${spots}</div>`;
   }
   const tags = Object.entries(p.tags || {}).sort().map(([k, v]) => `${k}=${v}`).join('\n');
   return `<div class="popup-title">${escapeHtml(p.name)}</div>
     <div class="badges">${badges}</div>
-    <div><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/${p.osmType}/${p.osmId}">Open in OSM</a> · <a target="_blank" rel="noopener" href="https://maps.google.com/?q=${lat},${lon}">Google Maps</a></div>
+    <div><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/${p.osmType}/${p.osmId}">Open in OSM</a> · <a target="_blank" rel="noopener" href="${mapsHref}">Google Maps</a></div>
     <pre class="tags">${escapeHtml(tags)}</pre>`;
 }
 
@@ -255,12 +266,12 @@ async function loadTileKeys(keys) {
   if (!wanted.length) return 0;
   $('generated').textContent = `Loading ${wanted.length} nearby chunk(s)…`;
   const chunks = await Promise.all(wanted.map(key => fetch(`./data/cell-tiles/${tileByKey.get(key).path}`).then(r => r.json())));
-  const seen = new Set(cellFeatures.map(f => f.properties.token));
   let added = 0;
   for (const chunk of chunks) {
     for (const f of compactChunkToFeatures(chunk)) {
-      if (seen.has(f.properties.token)) continue;
-      seen.add(f.properties.token);
+      const token = f.properties.token;
+      if (loadedCellTokens.has(token)) continue;
+      loadedCellTokens.add(token);
       cellFeatures.push(f);
       added++;
     }
@@ -305,6 +316,9 @@ async function loadDecorDataInner() {
     fetch('./data/manifest.json').then(r => r.json()),
     fetch('./data/cell-tiles-index.json').then(r => r.json()),
   ]);
+  if (loadedIndex.schemaVersion !== TILE_INDEX_SCHEMA_VERSION) {
+    throw new Error(`Unsupported cell tile schema ${loadedIndex.schemaVersion}; expected ${TILE_INDEX_SCHEMA_VERSION}`);
+  }
   tileIndex = loadedIndex;
   tileByKey = new Map(tileIndex.tiles.map(t => [t.parentToken, t]));
   categories = manifest.categories;
@@ -487,7 +501,7 @@ function showSolverResults(results, label) {
   scanDetector(L.latLng(best.lat, best.lon));
   map.setView([best.lat, best.lon], Math.max(map.getZoom(), 17));
   $('solver-output').innerHTML = `<strong>${results.length} closest nearby ${label} spot(s)</strong> from ${before ? 'last scan' : 'map center'}:<ol>` +
-    results.map(r => `<li>${Math.round(r.dist)}m · ${r.cells} cells · <a target="_blank" href="https://maps.google.com/?q=${r.lat},${r.lon}">Google Maps</a><br><small>Includes: ${r.decors.map(escapeHtml).join(', ')}</small></li>`).join('') +
+    results.map(r => `<li>${Math.round(r.dist)}m · ${r.cells} cells · <a target="_blank" rel="noopener" href="${googleMapsHref(r.lat, r.lon)}">Google Maps</a><br><small>Includes: ${r.decors.map(escapeHtml).join(', ')}</small></li>`).join('') +
     `</ol>`;
 }
 
@@ -518,32 +532,54 @@ async function expandSearchUntilEnough(getSeedCells, predicate) {
   return results;
 }
 
+function setSolverBusy(isBusy) {
+  solverInFlight = isBusy;
+  $('find-pure').disabled = isBusy;
+  $('find-combo').disabled = isBusy;
+}
+
+async function withSolverBusy(fn) {
+  if (solverInFlight) return;
+  setSolverBusy(true);
+  try {
+    await fn();
+  } finally {
+    setSolverBusy(false);
+  }
+}
+
 async function findPureTarget() {
   if (!decorDataReady) return;
-  const target = $('target-decor').value;
-  if (!target) {
-    $('solver-output').textContent = 'Choose a target decor first.';
-    return;
-  }
-  const results = await expandSearchUntilEnough(
-    () => decorToCells.get(target) || [],
-    (scan) => scan.decors.has(target) && [...scan.decors].every(d => d === target)
-  );
-  showSolverResults(results, `clean ${escapeHtml(target)}`);
+  await withSolverBusy(async () => {
+    const target = $('target-decor').value;
+    if (!target) {
+      $('solver-output').textContent = 'Choose a target decor first.';
+      return;
+    }
+    $('solver-output').textContent = `Searching nearby ${target} cells…`;
+    const results = await expandSearchUntilEnough(
+      () => decorToCells.get(target) || [],
+      (scan) => scan.decors.has(target) && [...scan.decors].every(d => d === target)
+    );
+    showSolverResults(results, `clean ${escapeHtml(target)}`);
+  });
 }
 
 async function findComboTarget() {
   if (!decorDataReady) return;
-  const targets = selectedTargets();
-  if (!targets.length) {
-    $('solver-output').textContent = 'Choose a target decor first.';
-    return;
-  }
-  const getSeedCells = () => targets
-    .map(t => decorToCells.get(t) || [])
-    .sort((a, b) => a.length - b.length)[0] || [];
-  const results = await expandSearchUntilEnough(getSeedCells, (scan) => targets.every(t => scan.decors.has(t)));
-  showSolverResults(results, targets.map(t => escapeHtml(t)).join(' + '));
+  await withSolverBusy(async () => {
+    const targets = selectedTargets();
+    if (!targets.length) {
+      $('solver-output').textContent = 'Choose a target decor first.';
+      return;
+    }
+    $('solver-output').textContent = `Searching nearby ${targets.join(' + ')} cells…`;
+    const getSeedCells = () => targets
+      .map(t => decorToCells.get(t) || [])
+      .sort((a, b) => a.length - b.length)[0] || [];
+    const results = await expandSearchUntilEnough(getSeedCells, (scan) => targets.every(t => scan.decors.has(t)));
+    showSolverResults(results, targets.map(t => escapeHtml(t)).join(' + '));
+  });
 }
 
 function syncCheckboxes() {
