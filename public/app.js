@@ -90,6 +90,10 @@ const DECOR_EMOJI = {
 
 const $ = (id) => document.getElementById(id);
 
+function setStatus(message) {
+  $('generated').textContent = message;
+}
+
 function pointStyle(color) {
   return { radius: 4, color: '#fff', weight: 1.5, fillColor: color, fillOpacity: 0.85 };
 }
@@ -325,7 +329,7 @@ async function loadTileKeys(keys, options = {}) {
   const { redraw = true } = options;
   const wanted = [...new Set(keys)].filter(key => tileByKey.has(key) && !loadedTileKeys.has(key));
   if (!wanted.length) return 0;
-  $('generated').textContent = `Loading ${wanted.length} nearby chunk(s)…`;
+  setStatus(`Loading ${wanted.length} nearby chunk(s)…`);
   const chunks = await Promise.all(wanted.map(scheduleTileFetch));
   let added = 0;
   for (const chunk of chunks) {
@@ -341,7 +345,7 @@ async function loadTileKeys(keys, options = {}) {
   for (const key of wanted) loadedTileKeys.add(key);
   allFeatures = cellFeatures;
   updateLoadedCounts();
-  $('generated').textContent = `${loadedTileKeys.size}/${tileIndex.tileCount} chunks loaded · ${cellFeatures.length.toLocaleString()} cells`;
+  setStatus(`${loadedTileKeys.size}/${tileIndex.tileCount} chunks loaded · ${cellFeatures.length.toLocaleString()} cells`);
   if (redraw) draw();
   return added;
 }
@@ -372,7 +376,7 @@ async function loadDecorData() {
 }
 
 async function loadDecorDataInner() {
-  $('generated').textContent = 'Loading decor index…';
+  setStatus('Loading decor index…');
   const [manifest, loadedIndex] = await Promise.all([
     fetch('./data/manifest.json').then(r => r.json()),
     fetch('./data/cell-tiles-index.json').then(r => r.json()),
@@ -385,7 +389,7 @@ async function loadDecorDataInner() {
   categories = manifest.categories;
   active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name));
   decorDataReady = true;
-  $('generated').textContent = `Generated ${new Date(manifest.generatedAt).toLocaleString()} · ${tileIndex.tileCount} chunks available`;
+  setStatus(`Generated ${new Date(manifest.generatedAt).toLocaleString()} · ${tileIndex.tileCount} chunks available`);
   renderFilters();
   renderTargetOptions();
   syncCheckboxes();
@@ -404,10 +408,10 @@ function initBasemapOnly() {
 
 function centerOnUser() {
   if (!navigator.geolocation) {
-    $('generated').textContent = 'Geolocation is not available in this browser.';
+    setStatus('Geolocation is not available in this browser.');
     return Promise.resolve(false);
   }
-  $('generated').textContent = 'Requesting location…';
+  setStatus('Requesting location…');
   return new Promise(resolve => {
     navigator.geolocation.getCurrentPosition(async pos => {
       const lat = pos.coords.latitude;
@@ -424,9 +428,9 @@ function centerOnUser() {
       if (cellFeatures.length) scanDetector(currentLocation);
       resolve(true);
     }, err => {
-      $('generated').textContent = `Location unavailable: ${err.message}. Showing Costa Mesa.`;
+      setStatus(`Location unavailable: ${err.message}. Showing Costa Mesa.`);
       resolve(false);
-    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    }, { enableHighAccuracy: false, timeout: 6000, maximumAge: 120000 });
   });
 }
 
@@ -653,10 +657,29 @@ function syncCheckboxes() {
 
 $('search').addEventListener('input', (e) => { searchText = e.target.value.trim().toLowerCase(); draw(); });
 $('locate-me').addEventListener('click', () => centerOnUser());
-$('load-data').addEventListener('click', () => loadDecorData().then(() => loadTilesForCurrentView(INITIAL_TILE_PAD)));
-$('core-view').addEventListener('click', () => { active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name)); syncCheckboxes(); draw(); });
-$('select-all').addEventListener('click', () => { active = new Set(categories.map(c => c.name)); syncCheckboxes(); draw(); });
-$('clear-all').addEventListener('click', () => { active.clear(); syncCheckboxes(); draw(); });
+$('load-data').addEventListener('click', async () => {
+  await loadDecorData();
+  await loadTilesForCurrentView(INITIAL_TILE_PAD);
+  setStatus(`Nearby data loaded · ${loadedTileKeys.size}/${tileIndex.tileCount} chunks · ${cellFeatures.length.toLocaleString()} cells`);
+});
+$('core-view').addEventListener('click', () => {
+  active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name));
+  syncCheckboxes();
+  draw();
+  setStatus(`Showing starter spots · ${$('visible-count').textContent} visible cells`);
+});
+$('select-all').addEventListener('click', () => {
+  active = new Set(categories.map(c => c.name));
+  syncCheckboxes();
+  draw();
+  setStatus(`Showing all decor overlays · ${$('visible-count').textContent} visible cells`);
+});
+$('clear-all').addEventListener('click', () => {
+  active.clear();
+  syncCheckboxes();
+  draw();
+  setStatus('Map overlays cleared. Choose filters or tap Starter spots to show cells again.');
+});
 $('find-pure').addEventListener('click', () => findPureTarget());
 $('find-combo').addEventListener('click', () => findComboTarget());
 map.on('click', async (e) => {
