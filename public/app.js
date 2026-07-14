@@ -330,6 +330,8 @@ function renderFilters() {
   const rest = [...byName.values()].filter(c => !grouped.has(c.name));
   if (rest.length) appendFilterGroup(filters, 'Other', rest);
   applyFilterSearch();
+  // draw() also updates this, but a low-zoom initial load never draws — initialize here.
+  updateFilterCount();
 }
 
 function applyFilterSearch() {
