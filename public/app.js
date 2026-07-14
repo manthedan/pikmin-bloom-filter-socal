@@ -1,9 +1,11 @@
 const COSTA_MESA_CENTER = [33.6638, -117.9047];
 const map = L.map('map', { preferCanvas: true }).setView(COSTA_MESA_CENTER, 13);
 
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// Muted gray basemap so the decor overlay is the only saturated thing on screen.
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors',
+  subdomains: 'abcd',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
 }).addTo(map);
 
 // Leaflet can render scrambled-looking tiles if it computes size before the CSS grid settles.
@@ -197,8 +199,9 @@ function createFeatureLayer(feature) {
     const [lon, lat] = feature.geometry.coordinates;
     layer = L.circleMarker([lat, lon], pointStyle(color));
   } else {
+    // Cells are a quiet tint on the muted basemap; the emoji layer carries the meaning.
     layer = L.geoJSON(feature, {
-      style: { color, weight: 3, opacity: 0.8, fillColor: color, fillOpacity: 0.12 },
+      style: { color, weight: 1, opacity: 0.35, fillColor: color, fillOpacity: 0.07 },
       pointToLayer: (_, latlng) => L.circleMarker(latlng, pointStyle(color)),
     });
   }
@@ -222,9 +225,12 @@ function draw(options = {}) {
   emojiLayer.clearLayers();
   let shown = 0;
   let emojiShown = 0;
+  let inViewCells = 0;
+  const inViewTypes = new Set();
   const bounds = [];
+  const viewBounds = map.getBounds();
   // Emoji markers are real DOM nodes, so only create them for cells near the current view.
-  const emojiBounds = map.getZoom() >= CELL_MIN_ZOOM ? map.getBounds().pad(0.2) : null;
+  const emojiBounds = map.getZoom() >= CELL_MIN_ZOOM ? viewBounds.pad(0.2) : null;
   for (const feature of allFeatures) {
     const token = feature.properties.token || feature.id;
     let layer = featureLayersByToken.get(token);
@@ -244,6 +250,10 @@ function draw(options = {}) {
     if (!featureLayer.hasLayer(layer)) layer.addTo(featureLayer);
 
     const [lon, lat] = feature.properties.center;
+    if (viewBounds.contains([lat, lon])) {
+      inViewCells++;
+      for (const d of feature.properties.decors) if (active.has(d)) inViewTypes.add(d);
+    }
     if (feature.properties.token && emojiBounds && emojiShown < MAX_EMOJI_MARKERS && emojiBounds.contains([lat, lon])) {
       emojiShown++;
       L.marker([lat, lon], {
@@ -259,7 +269,27 @@ function draw(options = {}) {
     bounds.push([lat, lon]);
   }
   $('visible-count').textContent = shown.toLocaleString();
+  updateMapStats(inViewCells, inViewTypes.size);
+  updateFilterCount();
   if (fitSearchResults && shown && shown <= 50 && searchText) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+}
+
+function updateMapStats(cells, types) {
+  $('ms-cells').textContent = `${cells.toLocaleString()} cells`;
+  $('ms-types').textContent = `${types} types`;
+  updateZoomBadge();
+}
+
+function updateZoomBadge() {
+  const zoomBadge = $('ms-zoom');
+  zoomBadge.textContent = `Z${map.getZoom()}`;
+  // Green when cells are visible at this zoom, amber when the user needs to zoom in.
+  zoomBadge.className = `zoom-badge ${map.getZoom() >= CELL_MIN_ZOOM ? 'zoom-ok' : 'zoom-low'}`;
+}
+
+function updateFilterCount() {
+  const total = categories.filter(c => c.count > 0).length;
+  $('filter-count').textContent = total ? `${active.size}/${total}` : '';
 }
 
 function filterLabel(cat) {
@@ -568,6 +598,9 @@ function updateZoomLayers() {
   toggleMapLayer(featureLayer, showCells);
   toggleMapLayer(emojiLayer, showCells);
   toggleMapLayer(aggregateLayer, !showCells && !!tileIndex);
+  $('zoom-hint').hidden = showCells || !tileIndex;
+  $('map-stats').hidden = !decorDataReady;
+  updateZoomBadge();
 }
 
 function initBasemapOnly() {

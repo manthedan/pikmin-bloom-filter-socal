@@ -67,7 +67,7 @@
     </section>
 
     <details class="card filter-panel">
-      <summary>Decor overlay filters</summary>
+      <summary>Decor overlay filters <span id="filter-count" class="filter-count"></span></summary>
       <input id="filter-search" type="search" placeholder="Find a decor type…" aria-label="Find a decor type" />
       <section id="filters" aria-label="Decor filters"></section>
     </details>
@@ -81,6 +81,10 @@
 
   <main>
     <div id="map"></div>
+    <div id="map-stats" class="map-pill" hidden aria-live="off">
+      <span id="ms-cells">0 cells</span><span class="pill-dot">·</span><span id="ms-types">0 types</span><span id="ms-zoom" class="zoom-badge">Z13</span>
+    </div>
+    <div id="zoom-hint" class="map-hint" hidden>Zoom in to see decor cells</div>
     <button id="fab-locate" class="fab" title="Scan at my location" aria-label="Scan at my location">📡</button>
   </main>
 
