@@ -73,7 +73,7 @@ REGION=amsterdam BBOX=4.72,52.28,5.03,52.43 npm run build
 
 ## Acknowledgments
 
-- **[PikMap](https://pikmap.app)** — the excellent Pikmin Bloom decor cell map covering Taiwan, Japan, and South Korea. This project exists because PikMap doesn't (yet) cover Southern California, and it borrows shamelessly from their design: the muted basemap, icon-first cell rendering, and floating map chrome are all PikMap-inspired. `scripts/compare-pikmap-park.mjs` was used to sanity-check this project's OSM-derived cells against PikMap's data for Daan Forest Park in Taipei. If you play in Asia, use PikMap — it's better.
+- **[PikMap](https://pikmap.app)** — the excellent Pikmin Bloom decor cell map covering Taiwan, Japan, and South Korea. This project exists because PikMap doesn't (yet) cover Southern California, and it borrows shamelessly from their design: the muted basemap, icon-first cell rendering, and floating map chrome are all PikMap-inspired. During development, this project's OSM-derived cells were sanity-checked against PikMap's coverage of a Taipei park. If you play in Asia, use PikMap — it's better.
 - The Pikmin Bloom community's research into detector mechanics and S2 level-17 decor cells.
 - [OpenStreetMap](https://www.openstreetmap.org) contributors and [Geofabrik](https://download.geofabrik.de/) for the data this is built on.
 
