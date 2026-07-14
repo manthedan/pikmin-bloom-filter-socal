@@ -8,8 +8,8 @@ const POLYGON_SAMPLE_METERS = Number(process.env.POLYGON_SAMPLE_METERS || 35);
 const LINE_SAMPLE_METERS = Number(process.env.LINE_SAMPLE_METERS || 25);
 const WATERSIDE_LINE_BUFFER_METERS = Number(process.env.WATERSIDE_LINE_BUFFER_METERS || 35);
 const AREA_DECORS = new Set(['Park', 'Forest', 'Waterside', 'Beach', 'Mountain', 'Zoo', 'Theme Park', 'Airport', 'Stadium']);
-const IN = new URL('../public/data/decor-spots.geojson', import.meta.url);
-const OUT = new URL(`../public/data/decor-cells-l${LEVEL}.geojson`, import.meta.url);
+const IN = new URL('../data/derived/decor-spots.geojson', import.meta.url);
+const OUT = new URL(`../data/derived/decor-cells-l${LEVEL}.geojson`, import.meta.url);
 
 function cellIdFor(lon, lat) {
   return S2CellId.fromPoint(S2LatLng.fromDegrees(lat, lon).toPoint()).parentL(LEVEL);
@@ -210,7 +210,7 @@ const out = {
   type: 'FeatureCollection',
   name: `Approximate decor S2 cells L${LEVEL}`,
   generatedAt: new Date().toISOString(),
-  source: 'Derived from public/data/decor-spots.geojson OSM candidates',
+  source: 'Derived from data/derived/decor-spots.geojson OSM candidates',
   detectorRadiusMeters: 100,
   s2Level: LEVEL,
   polygonSampleMeters: POLYGON_SAMPLE_METERS,

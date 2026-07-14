@@ -1,6 +1,5 @@
 const COSTA_MESA_CENTER = [33.6638, -117.9047];
 const map = L.map('map', { preferCanvas: true }).setView(COSTA_MESA_CENTER, 13);
-window.map = map;
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
@@ -14,6 +13,7 @@ window.addEventListener('resize', () => map.invalidateSize());
 
 const featureLayer = L.layerGroup().addTo(map);
 const emojiLayer = L.layerGroup().addTo(map);
+const aggregateLayer = L.layerGroup();
 const detectorLayer = L.layerGroup().addTo(map);
 const userLayer = L.layerGroup().addTo(map);
 let allFeatures = [];
@@ -36,14 +36,17 @@ let solverInFlight = false;
 let activeTileFetches = 0;
 let tileFetchQueue = [];
 let loadingTilePromises = new Map();
+let lastSolverResults = [];
 const SOLVER_K = 3;
 const BUCKET_DEGREES = 0.002;
 const INITIAL_TILE_PAD = 1;
 const DETECTOR_TILE_PAD = 1;
 const MAX_SOLVER_TILE_RING = 5;
 const SOLVER_EXCLUDED_DECORS = new Set(['Park', 'Waterside', 'Roadside']);
-const TILE_INDEX_SCHEMA_VERSION = 2;
+const TILE_INDEX_SCHEMA_VERSION = 3;
 const MAX_TILE_FETCHES = 6;
+const CELL_MIN_ZOOM = 13;
+const MAX_EMOJI_MARKERS = 1500;
 
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
 const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Clothes Store', 'Makeup Store']);
@@ -143,12 +146,12 @@ function popup(feature) {
   const [lon, lat] = p.center;
   const mapsHref = googleMapsHref(lat, lon);
   if (p.token) {
-    const spots = (p.spots || []).map(s => `• ${escapeHtml(s.name)} (${s.decors.map(escapeHtml).join(', ')})`).join('<br>');
+    const names = (p.names || []).map(n => `• ${escapeHtml(n)}`).join('<br>');
     return `<div class="popup-title">S2 cell ${escapeHtml(p.token)}</div>
       <div class="badges">${badges}</div>
       <div>${p.spotCount || 0} OSM candidate spot(s) in this approximate cell</div>
       <div><a target="_blank" rel="noopener" href="${mapsHref}">open center in Google Maps</a></div>
-      <div class="tags">${spots}</div>`;
+      ${names ? `<div class="tags">${names}</div>` : ''}`;
   }
   const tags = Object.entries(p.tags || {}).sort().map(([k, v]) => `${k}=${v}`).join('\n');
   return `<div class="popup-title">${escapeHtml(p.name)}</div>
@@ -165,8 +168,7 @@ function featureMatches(feature) {
   const p = feature.properties;
   if (!p.decors.some(d => active.has(d))) return false;
   if (!searchText) return true;
-  const haystack = `${p.name || p.token || ''} ${p.decors.join(' ')} ${Object.entries(p.tags || {}).map(([k, v]) => `${k} ${v}`).join(' ')}`.toLowerCase();
-  return haystack.includes(searchText);
+  return p.searchHay.includes(searchText);
 }
 
 function updateLoadedCounts() {
@@ -198,10 +200,16 @@ function restyleFeatureLayer(layer, feature) {
   }
 }
 
-function draw() {
+function draw(options = {}) {
+  // fitSearchResults must only be set from the search input handler: draw() also runs on
+  // every moveend, and refitting there would snap the map back while the user pans.
+  const { fitSearchResults = false } = options;
   emojiLayer.clearLayers();
   let shown = 0;
+  let emojiShown = 0;
   const bounds = [];
+  // Emoji markers are real DOM nodes, so only create them for cells near the current view.
+  const emojiBounds = map.getZoom() >= CELL_MIN_ZOOM ? map.getBounds().pad(0.2) : null;
   for (const feature of allFeatures) {
     const token = feature.properties.token || feature.id;
     let layer = featureLayersByToken.get(token);
@@ -220,10 +228,12 @@ function draw() {
     }
     if (!featureLayer.hasLayer(layer)) layer.addTo(featureLayer);
 
-    if (feature.properties.token && map.getZoom() >= 13) {
-      const [lon, lat] = feature.properties.center;
+    const [lon, lat] = feature.properties.center;
+    if (feature.properties.token && emojiBounds && emojiShown < MAX_EMOJI_MARKERS && emojiBounds.contains([lat, lon])) {
+      emojiShown++;
       L.marker([lat, lon], {
         interactive: false,
+        keyboard: false,
         icon: L.divIcon({
           className: 'decor-emoji-icon',
           html: emojiForFeature(feature),
@@ -232,11 +242,10 @@ function draw() {
         }),
       }).addTo(emojiLayer);
     }
-    const [lon, lat] = feature.properties.center;
     bounds.push([lat, lon]);
   }
   $('visible-count').textContent = shown.toLocaleString();
-  if (shown && shown <= 50 && searchText) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+  if (fitSearchResults && shown && shown <= 50 && searchText) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
 }
 
 function renderFilters() {
@@ -252,6 +261,7 @@ function renderFilters() {
     label.querySelector('input').addEventListener('change', (e) => {
       if (e.target.checked) active.add(cat.name); else active.delete(cat.name);
       draw();
+      updateHash();
     });
     filters.appendChild(label);
   }
@@ -270,6 +280,8 @@ function tileKeysForBounds(bounds, pad = 0) {
 }
 
 function maskToDecors(mask) {
+  // Do NOT rewrite this with bitwise ops: there are 37 decor types, and JS bitwise
+  // operators truncate to 32 bits. Float division stays exact well below 2^53.
   const decors = [];
   for (let i = 0; i < tileIndex.decorTypes.length; i++) {
     if (Math.floor(mask / (2 ** i)) % 2 === 1) decors.push(tileIndex.decorTypes[i]);
@@ -280,6 +292,7 @@ function maskToDecors(mask) {
 function compactChunkToFeatures(chunk) {
   return chunk.cellTokens.map((token, i) => {
     const decors = maskToDecors(chunk.decorMasks[i] || 0);
+    const names = chunk.names?.[i] || [];
     return {
       type: 'Feature',
       id: token,
@@ -289,9 +302,10 @@ function compactChunkToFeatures(chunk) {
         level: chunk.cellLevel,
         center: chunk.centers[i],
         decors,
+        names,
         colorByDecor: Object.fromEntries(decors.map(d => [d, tileIndex.colorByDecor[d] || '#334d2f'])),
         spotCount: chunk.spotCounts?.[i] || 0,
-        spots: [],
+        searchHay: `${names.join(' ')} ${decors.join(' ')} ${token}`.toLowerCase(),
       },
     };
   });
@@ -310,11 +324,14 @@ function pumpTileFetchQueue() {
 
 function scheduleTileFetch(key) {
   if (loadingTilePromises.has(key)) return loadingTilePromises.get(key);
+  // Tile filenames are stable S2 tokens served with immutable caching, so version the URL
+  // by dataset generation — otherwise returning visitors keep year-old tiles after a rebuild.
+  const version = encodeURIComponent(tileIndex.generatedAt || TILE_INDEX_SCHEMA_VERSION);
   const promise = new Promise((resolve, reject) => {
     tileFetchQueue.push({
       resolve,
       reject,
-      run: () => fetch(`./data/cell-tiles/${tileByKey.get(key).path}`).then(r => {
+      run: () => fetch(`./data/cell-tiles/${tileByKey.get(key).path}?v=${version}`).then(r => {
         if (!r.ok) throw new Error(`Tile ${key} failed: HTTP ${r.status}`);
         return r.json();
       }),
@@ -350,9 +367,12 @@ async function loadTileKeys(keys, options = {}) {
   return added;
 }
 
-async function loadTilesForCurrentView(pad = INITIAL_TILE_PAD) {
+async function loadTilesForCurrentView(pad = INITIAL_TILE_PAD, options = {}) {
   if (!tileIndex) return 0;
-  return loadTileKeys(tileKeysForBounds(map.getBounds(), pad));
+  // Below the cell-overlay zoom the aggregate markers stand in for cells, and the viewport
+  // can span the whole dataset — loading it would fetch all ~400 chunks in one go.
+  if (map.getZoom() < CELL_MIN_ZOOM) return 0;
+  return loadTileKeys(tileKeysForBounds(map.getBounds(), pad), options);
 }
 
 async function loadTileRingAround(lat, lon, ring, options = {}) {
@@ -369,17 +389,30 @@ async function loadTileRingAround(lat, lon, ring, options = {}) {
   return loadTileKeys(unloaded.slice(0, batchSize).map(t => t.tile.parentToken), options);
 }
 
-async function loadDecorData() {
-  if (loadDataPromise) return loadDataPromise;
-  loadDataPromise = loadDecorDataInner();
+function loadDecorData() {
+  if (!loadDataPromise) {
+    // Drop the cached promise on failure so "Load nearby data" can retry after a network blip.
+    loadDataPromise = loadDecorDataInner().catch(err => {
+      loadDataPromise = null;
+      throw err;
+    });
+  }
   return loadDataPromise;
 }
 
 async function loadDecorDataInner() {
   setStatus('Loading decor index…');
+  // cache: 'no-cache' forces conditional revalidation (cheap 304s) so a freshly deployed
+  // app.js can never pair with a stale-schema index still sitting in the HTTP cache.
   const [manifest, loadedIndex] = await Promise.all([
-    fetch('./data/manifest.json').then(r => r.json()),
-    fetch('./data/cell-tiles-index.json').then(r => r.json()),
+    fetch('./data/manifest.json', { cache: 'no-cache' }).then(r => {
+      if (!r.ok) throw new Error(`manifest.json failed: HTTP ${r.status}`);
+      return r.json();
+    }),
+    fetch('./data/cell-tiles-index.json', { cache: 'no-cache' }).then(r => {
+      if (!r.ok) throw new Error(`cell-tiles-index.json failed: HTTP ${r.status}`);
+      return r.json();
+    }),
   ]);
   if (loadedIndex.schemaVersion !== TILE_INDEX_SCHEMA_VERSION) {
     throw new Error(`Unsupported cell tile schema ${loadedIndex.schemaVersion}; expected ${TILE_INDEX_SCHEMA_VERSION}`);
@@ -388,12 +421,47 @@ async function loadDecorDataInner() {
   tileByKey = new Map(tileIndex.tiles.map(t => [t.parentToken, t]));
   categories = manifest.categories;
   active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name));
+  if (Array.isArray(initialHash.decors)) {
+    const known = new Set(categories.map(c => c.name));
+    active = new Set(initialHash.decors.filter(d => known.has(d)));
+  }
   decorDataReady = true;
   setStatus(`Generated ${new Date(manifest.generatedAt).toLocaleString()} · ${tileIndex.tileCount} chunks available`);
   renderFilters();
   renderTargetOptions();
   syncCheckboxes();
+  buildAggregateMarkers();
+  updateZoomLayers();
+  updateHash();
   await loadTilesForCurrentView(INITIAL_TILE_PAD);
+}
+
+function buildAggregateMarkers() {
+  aggregateLayer.clearLayers();
+  for (const tile of tileIndex.tiles) {
+    const lat = (tile.bbox.minLat + tile.bbox.maxLat) / 2;
+    const lng = (tile.bbox.minLng + tile.bbox.maxLng) / 2;
+    const label = tile.count >= 1000 ? `${(tile.count / 1000).toFixed(1)}k` : String(tile.count);
+    const marker = L.marker([lat, lng], {
+      keyboard: false,
+      icon: L.divIcon({ className: 'aggregate-icon', html: label, iconSize: [48, 26], iconAnchor: [24, 13] }),
+    });
+    marker.bindTooltip(`~${tile.count.toLocaleString()} decor cells — click to zoom in`);
+    marker.on('click', () => map.setView([lat, lng], CELL_MIN_ZOOM + 1));
+    marker.addTo(aggregateLayer);
+  }
+}
+
+function toggleMapLayer(layer, on) {
+  if (on && !map.hasLayer(layer)) layer.addTo(map);
+  else if (!on && map.hasLayer(layer)) map.removeLayer(layer);
+}
+
+function updateZoomLayers() {
+  const showCells = map.getZoom() >= CELL_MIN_ZOOM;
+  toggleMapLayer(featureLayer, showCells);
+  toggleMapLayer(emojiLayer, showCells);
+  toggleMapLayer(aggregateLayer, !showCells && !!tileIndex);
 }
 
 function initBasemapOnly() {
@@ -424,14 +492,33 @@ function centerOnUser() {
       }
       map.setView(currentLocation, Math.max(map.getZoom(), 16));
       lastScanLatLng = currentLocation;
-      if (decorDataReady) await loadTilesForCurrentView(INITIAL_TILE_PAD);
-      if (cellFeatures.length) scanDetector(currentLocation);
+      let loadFailed = false;
+      try {
+        if (decorDataReady) await loadTilesForCurrentView(INITIAL_TILE_PAD);
+      } catch (err) {
+        // Skip the scan rather than report a misleading result from a partially loaded area.
+        console.error(err);
+        loadFailed = true;
+        setStatus('Could not load nearby chunks — pan the map or tap "Use my location" again to retry.');
+      }
+      if (!loadFailed && cellFeatures.length) scanDetector(currentLocation);
       resolve(true);
     }, err => {
       setStatus(`Location unavailable: ${err.message}. Showing Costa Mesa.`);
       resolve(false);
     }, { enableHighAccuracy: false, timeout: 6000, maximumAge: 120000 });
   });
+}
+
+async function autoLocateIfGranted() {
+  // Never fire the permission prompt on page load; only auto-locate when already granted.
+  if (!navigator.geolocation || !navigator.permissions?.query) return;
+  try {
+    const status = await navigator.permissions.query({ name: 'geolocation' });
+    if (status.state === 'granted') await centerOnUser();
+  } catch {
+    // Permissions API unsupported — wait for the explicit "Use my location" tap.
+  }
 }
 
 function bucketKey(lat, lon) {
@@ -447,12 +534,6 @@ function addCellToSpatialIndexes(cell) {
     if (!decorToCells.has(decor)) decorToCells.set(decor, []);
     decorToCells.get(decor).push(cell);
   }
-}
-
-function buildSpatialIndexes() {
-  cellBuckets = new Map();
-  decorToCells = new Map();
-  for (const cell of cellFeatures) addCellToSpatialIndexes(cell);
 }
 
 function renderTargetOptions() {
@@ -507,24 +588,10 @@ function scanAt(lat, lon) {
   return { cells, decors };
 }
 
-function decorsAt(lat, lon) {
-  return scanAt(lat, lon).decors;
-}
-
 function boundsAround(lat, lon, radiusMeters) {
   const [south, west] = offsetMeters(lat, lon, -radiusMeters, -radiusMeters);
   const [north, east] = offsetMeters(lat, lon, radiusMeters, radiusMeters);
   return L.latLngBounds([south, west], [north, east]);
-}
-
-function candidateIsPure(lat, lon, target) {
-  const { decors } = scanAt(lat, lon);
-  return decors.has(target) && [...decors].every(d => d === target);
-}
-
-function candidateContainsAll(lat, lon, targets) {
-  const { decors } = scanAt(lat, lon);
-  return targets.every(t => decors.has(t));
 }
 
 function addCandidate(results, candidate, k) {
@@ -537,10 +604,19 @@ function addCandidate(results, candidate, k) {
 
 function searchCandidatePositions(seedCells, predicate, k = SOLVER_K) {
   const origin = lastScanLatLng || map.getCenter();
+  // Nearest-first with early exit: candidate positions sit within 100m of their seed cell
+  // center, so once the kth-best result beats the closest possible candidate from the next
+  // seed cell, no later cell can improve the answer.
+  const ordered = seedCells
+    .map(cell => {
+      const [clon, clat] = cell.properties.center;
+      return { cell, clat, clon, cellDist: metersBetween(origin.lat, origin.lng, clat, clon) };
+    })
+    .sort((a, b) => a.cellDist - b.cellDist);
   const results = [];
   const visited = new Set();
-  for (const cell of seedCells) {
-    const [clon, clat] = cell.properties.center;
+  for (const { clat, clon, cellDist } of ordered) {
+    if (results.length >= k && results[k - 1].dist <= cellDist - 105) break;
     for (let east = -100; east <= 100; east += 10) {
       for (let north = -100; north <= 100; north += 10) {
         if (Math.hypot(east, north) > 100) continue;
@@ -559,6 +635,7 @@ function searchCandidatePositions(seedCells, predicate, k = SOLVER_K) {
 }
 
 function showSolverResults(results, label) {
+  lastSolverResults = results;
   if (!results.length) {
     const loaded = tileIndex ? `${loadedTileKeys.size}/${tileIndex.tileCount}` : 'nearby';
     $('solver-output').textContent = `No nearby ${label} spot found in the loaded search area (${loaded} chunks searched). Try panning closer to the area you want and search again.`;
@@ -569,7 +646,7 @@ function showSolverResults(results, label) {
   scanDetector(L.latLng(best.lat, best.lon));
   map.setView([best.lat, best.lon], Math.max(map.getZoom(), 17));
   $('solver-output').innerHTML = `<strong>${results.length} closest nearby ${label} spot(s)</strong> from ${before ? 'last scan' : 'map center'}:<ol>` +
-    results.map(r => `<li>${Math.round(r.dist)}m · ${r.cells} cells · <a target="_blank" rel="noopener" href="${googleMapsHref(r.lat, r.lon)}">Google Maps</a><br><small>Includes: ${r.decors.map(escapeHtml).join(', ')}</small></li>`).join('') +
+    results.map((r, i) => `<li>${Math.round(r.dist)}m · ${r.cells} cells · <a href="#" data-result-index="${i}">show on map</a> · <a target="_blank" rel="noopener" href="${googleMapsHref(r.lat, r.lon)}">Google Maps</a><br><small>Includes: ${r.decors.map(escapeHtml).join(', ')}</small></li>`).join('') +
     `</ol>`;
 }
 
@@ -603,8 +680,11 @@ async function expandSearchUntilEnough(getSeedCells, predicate) {
 
 function setSolverBusy(isBusy) {
   solverInFlight = isBusy;
-  $('find-pure').disabled = isBusy;
-  $('find-combo').disabled = isBusy;
+  for (const id of ['find-pure', 'find-combo']) {
+    const button = $(id);
+    button.disabled = isBusy;
+    button.setAttribute('aria-busy', String(isBusy));
+  }
 }
 
 async function withSolverBusy(fn) {
@@ -612,6 +692,9 @@ async function withSolverBusy(fn) {
   setSolverBusy(true);
   try {
     await fn();
+  } catch (err) {
+    console.error(err);
+    $('solver-output').textContent = 'Search failed while loading map chunks — check your connection and try again.';
   } finally {
     setSolverBusy(false);
   }
@@ -655,44 +738,149 @@ function syncCheckboxes() {
   document.querySelectorAll('#filters input').forEach(i => { i.checked = active.has(i.value); });
 }
 
-$('search').addEventListener('input', (e) => { searchText = e.target.value.trim().toLowerCase(); draw(); });
+function safeDecode(value) {
+  // Shared/truncated URLs can carry malformed percent escapes; never let one brick startup.
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
+}
+
+function parseHash() {
+  const out = {};
+  for (const part of location.hash.slice(1).split('&')) {
+    const eq = part.indexOf('=');
+    if (eq < 0) continue;
+    const key = part.slice(0, eq);
+    const value = part.slice(eq + 1);
+    if (key === 'map') {
+      // All three parts must be present and non-empty: Number('') is 0, so a truncated
+      // "#map=13//" would otherwise pass range checks and strand the view at (0,0).
+      const parts = value.split('/');
+      if (parts.length !== 3 || parts.some(p => p === '')) continue;
+      const [z, lat, lng] = parts.map(Number);
+      // Reject out-of-range values from crafted/corrupted URLs: huge coordinates can
+      // overflow Leaflet's Web Mercator projection.
+      const valid = Number.isFinite(z) && Number.isFinite(lat) && Number.isFinite(lng) &&
+        z >= 2 && z <= 19 && lat >= -85 && lat <= 85 && lng >= -180 && lng <= 180;
+      if (valid) out.view = { z: Math.round(z), lat, lng };
+    } else if (key === 'decors') {
+      out.decors = value.split(',').filter(Boolean).map(safeDecode).filter(d => d !== null);
+    }
+  }
+  return out;
+}
+
+let hashUpdateTimer = null;
+function updateHash() {
+  clearTimeout(hashUpdateTimer);
+  hashUpdateTimer = setTimeout(() => {
+    // Before categories load we can't render the decors= part, and the hash-view setView
+    // already fired moveend — rewriting now would strip filters from a shared URL.
+    if (!decorDataReady) return;
+    const c = map.getCenter();
+    const parts = [
+      `map=${map.getZoom()}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`,
+      `decors=${[...active].sort().map(encodeURIComponent).join(',')}`,
+    ];
+    history.replaceState(null, '', `#${parts.join('&')}`);
+  }, 200);
+}
+
+let searchTimer = null;
+$('search').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchText = e.target.value.trim().toLowerCase();
+    draw({ fitSearchResults: true });
+  }, 150);
+});
 $('locate-me').addEventListener('click', () => centerOnUser());
 $('load-data').addEventListener('click', async () => {
-  await loadDecorData();
-  await loadTilesForCurrentView(INITIAL_TILE_PAD);
-  setStatus(`Nearby data loaded · ${loadedTileKeys.size}/${tileIndex.tileCount} chunks · ${cellFeatures.length.toLocaleString()} cells`);
+  try {
+    await loadDecorData();
+    if (map.getZoom() < CELL_MIN_ZOOM) {
+      setStatus('Zoom in to load decor cells — chunk totals are shown at this zoom.');
+      return;
+    }
+    await loadTilesForCurrentView(INITIAL_TILE_PAD);
+    setStatus(`Nearby data loaded · ${loadedTileKeys.size}/${tileIndex.tileCount} chunks · ${cellFeatures.length.toLocaleString()} cells`);
+  } catch (err) {
+    console.error(err);
+    setStatus('Could not load decor data — check your connection and tap "Load nearby data" to retry.');
+  }
 });
 $('core-view').addEventListener('click', () => {
   active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name));
   syncCheckboxes();
   draw();
+  updateHash();
   setStatus(`Showing starter spots · ${$('visible-count').textContent} visible cells`);
 });
 $('select-all').addEventListener('click', () => {
   active = new Set(categories.map(c => c.name));
   syncCheckboxes();
   draw();
+  updateHash();
   setStatus(`Showing all decor overlays · ${$('visible-count').textContent} visible cells`);
 });
 $('clear-all').addEventListener('click', () => {
   active.clear();
   syncCheckboxes();
   draw();
+  updateHash();
   setStatus('Map overlays cleared. Choose filters or tap Starter spots to show cells again.');
 });
 $('find-pure').addEventListener('click', () => findPureTarget());
 $('find-combo').addEventListener('click', () => findComboTarget());
+$('solver-output').addEventListener('click', (e) => {
+  const link = e.target.closest('[data-result-index]');
+  if (!link) return;
+  e.preventDefault();
+  const result = lastSolverResults[Number(link.dataset.resultIndex)];
+  if (!result) return;
+  scanDetector(L.latLng(result.lat, result.lon));
+  map.setView([result.lat, result.lon], Math.max(map.getZoom(), 17));
+});
 map.on('click', async (e) => {
-  if (decorDataReady) await loadTileKeys(tileKeysForBounds(L.latLngBounds(e.latlng, e.latlng), DETECTOR_TILE_PAD));
+  if (decorDataReady) {
+    try {
+      await loadTileKeys(tileKeysForBounds(L.latLngBounds(e.latlng, e.latlng), DETECTOR_TILE_PAD));
+    } catch (err) {
+      // Don't scan with a possibly-missing chunk batch — it can report a false "no decor here".
+      console.error(err);
+      setStatus('Could not load chunks for this area — tap again to retry the scan.');
+      return;
+    }
+  }
   scanDetector(e.latlng);
 });
 let moveLoadTimer = null;
 map.on('moveend', () => {
+  updateHash();
   if (!decorDataReady) return;
   clearTimeout(moveLoadTimer);
-  moveLoadTimer = setTimeout(() => loadTilesForCurrentView(0), 250);
+  moveLoadTimer = setTimeout(async () => {
+    try {
+      await loadTilesForCurrentView(0, { redraw: false });
+    } catch (err) {
+      console.error(err);
+    }
+    draw();
+  }, 250);
 });
+map.on('zoomend', updateZoomLayers);
 
+const initialHash = parseHash();
 initBasemapOnly();
-loadDecorData();
-centerOnUser();
+if (initialHash.view) map.setView([initialHash.view.lat, initialHash.view.lng], initialHash.view.z);
+loadDecorData().catch(err => {
+  console.error(err);
+  setStatus('Could not load decor data — check your connection, then tap "Load nearby data" to retry.');
+});
+if (!initialHash.view) autoLocateIfGranted();
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}

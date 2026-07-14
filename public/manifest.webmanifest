@@ -1,0 +1,15 @@
+{
+  "name": "SoCal Pikmin Detector Map",
+  "short_name": "Pikmin Map",
+  "description": "Unofficial Pikmin Bloom detector planner for Los Angeles and Orange County, built from OpenStreetMap data.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5efe2",
+  "theme_color": "#2f5d3a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

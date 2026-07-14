@@ -3,7 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Unofficial Pikmin Bloom detector planner for Los Angeles and Orange County, built from OpenStreetMap data." />
+  <meta name="theme-color" content="#2f5d3a" />
   <title>SoCal Pikmin Detector Map</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   <link rel="stylesheet" href="./vendor/leaflet/leaflet.css" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -23,7 +28,7 @@
     <div class="stats">
       <div><strong id="visible-count">0</strong> shown</div>
       <div><span id="total-count">0</span></div>
-      <small id="generated">Starting map…</small>
+      <small id="generated" aria-live="polite">Starting map…</small>
     </div>
 
     <div class="actions primary-actions">
@@ -40,7 +45,7 @@
     <section class="detector-panel card">
       <h2>Detector solver</h2>
       <p class="hint">Click the map to simulate a 100m detector scan. Approximate S2 level 17 cells. Common ambient decors like Park and Waterside are shown on the map but hidden from solver targets.</p>
-      <div id="detector-output">No scan yet.</div>
+      <div id="detector-output" aria-live="polite">No scan yet.</div>
       <label class="search-label">
         Target decor A
         <select id="target-decor"></select>
@@ -51,7 +56,7 @@
       </label>
       <button id="find-combo" class="primary wide">Find 3 nearby matching spots</button>
       <button id="find-pure" class="wide">Find 3 nearby clean target-only spots</button>
-      <div id="solver-output"></div>
+      <div id="solver-output" aria-live="polite"></div>
     </section>
 
     <details class="card filter-panel">
@@ -70,7 +75,7 @@
     <div id="map"></div>
   </main>
 
-  <script src="./vendor/leaflet/leaflet.js"></script>
+  <script src="./vendor/leaflet/leaflet.js" defer></script>
   <script src="./app.js" type="module"></script>
 </body>
 </html>

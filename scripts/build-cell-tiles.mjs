@@ -3,7 +3,7 @@ import { S2CellId, S2Cell, S2LatLng } from 'nodes2ts';
 
 const CELL_LEVEL = Number(process.env.S2_LEVEL || 17);
 const PARENT_LEVEL = Number(process.env.S2_PARENT_LEVEL || 11);
-const IN = new URL(`../public/data/decor-cells-l${CELL_LEVEL}.geojson`, import.meta.url);
+const IN = new URL(`../data/derived/decor-cells-l${CELL_LEVEL}.geojson`, import.meta.url);
 const MANIFEST = new URL('../public/data/manifest.json', import.meta.url);
 const OUT_ROOT = new URL('../public/data/cell-tiles/', import.meta.url);
 const INDEX = new URL('../public/data/cell-tiles-index.json', import.meta.url);
@@ -34,9 +34,24 @@ function parentToken(token) {
 }
 
 function maskForDecors(decors, bitByDecor) {
+  // Decor bit indexes can exceed 31, so stay in float math (exact below 2^53); no 32-bit bitwise ops.
   let mask = 0;
   for (const decor of decors) mask += 2 ** bitByDecor.get(decor);
   return mask;
+}
+
+const MAX_NAMES_PER_CELL = 4;
+const MAX_NAME_LENGTH = 48;
+
+function namesForCell(spots) {
+  const names = [];
+  for (const spot of spots || []) {
+    const name = String(spot.name || '').trim();
+    if (!name || name === '(unnamed)' || names.includes(name)) continue;
+    names.push(name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 1)}…` : name);
+    if (names.length >= MAX_NAMES_PER_CELL) break;
+  }
+  return names;
 }
 
 const [cells, manifest] = await Promise.all([
@@ -62,6 +77,7 @@ for (const f of cells.features) {
       centers: [],
       rings: [],
       spotCounts: [],
+      names: [],
     });
   }
   const chunk = buckets.get(p);
@@ -72,6 +88,7 @@ for (const f of cells.features) {
   chunk.centers.push(f.properties.center.map(n => Number(n.toFixed(7))));
   chunk.rings.push(ring);
   chunk.spotCounts.push(f.properties.spotCount || 0);
+  chunk.names.push(namesForCell(f.properties.spots));
 }
 
 const tiles = [];
@@ -86,7 +103,7 @@ for (const [parent, chunk] of buckets) {
 tiles.sort((a, b) => a.parentToken.localeCompare(b.parentToken));
 await writeFile(INDEX, JSON.stringify({
   generatedAt: new Date().toISOString(),
-  schemaVersion: 2,
+  schemaVersion: 3,
   s2CellLevel: CELL_LEVEL,
   s2ChunkParentLevel: PARENT_LEVEL,
   tileCount: tiles.length,

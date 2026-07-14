@@ -5,6 +5,7 @@ import { DECOR_MAPPINGS } from './decor-mappings.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const WORK = new URL('../data/osm/', import.meta.url);
+const DERIVED_DIR = new URL('../data/derived/', import.meta.url);
 const OUT_DIR = new URL('../public/data/', import.meta.url);
 const GEOFABRIK_URL = process.env.GEOFABRIK_URL || 'https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf';
 const REGION = process.env.REGION || 'la-oc-play-areas';
@@ -74,6 +75,7 @@ function filterExpressions() {
 
 async function main() {
   await mkdir(WORK, { recursive: true });
+  await mkdir(DERIVED_DIR, { recursive: true });
   await mkdir(OUT_DIR, { recursive: true });
   await writeFile(FILTERS, filterExpressions());
 
@@ -134,7 +136,7 @@ async function main() {
     attribution: '© OpenStreetMap contributors; derived from OSM tags; unofficial Pikmin Bloom companion data',
     features,
   };
-  await writeFile(new URL('decor-spots.geojson', OUT_DIR), JSON.stringify(collection));
+  await writeFile(new URL('decor-spots.geojson', DERIVED_DIR), JSON.stringify(collection));
   await writeFile(new URL('manifest.json', OUT_DIR), JSON.stringify(manifest, null, 2));
   console.log(`Wrote ${features.length} features from Geofabrik extract`);
 }

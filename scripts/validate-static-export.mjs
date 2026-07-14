@@ -1,11 +1,15 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 
-const TILE_INDEX_SCHEMA_VERSION = 2;
+const TILE_INDEX_SCHEMA_VERSION = 3;
 
 const required = [
   'public/index.html',
   'public/app.js',
   'public/styles.css',
+  'public/manifest.webmanifest',
+  'public/sw.js',
+  'public/icons/icon-192.png',
+  'public/icons/icon-512.png',
   'public/vendor/leaflet/leaflet.css',
   'public/vendor/leaflet/leaflet.js',
   'public/data/manifest.json',
@@ -28,6 +32,12 @@ async function listJsonFiles(root, dir = root) {
 const index = JSON.parse(await readFile('public/data/cell-tiles-index.json', 'utf8'));
 if (index.schemaVersion !== TILE_INDEX_SCHEMA_VERSION) {
   throw new Error(`cell-tiles-index.json schemaVersion ${index.schemaVersion} does not match expected ${TILE_INDEX_SCHEMA_VERSION}`);
+}
+
+const appSource = await readFile('public/app.js', 'utf8');
+const appSchema = appSource.match(/TILE_INDEX_SCHEMA_VERSION = (\d+)/)?.[1];
+if (Number(appSchema) !== TILE_INDEX_SCHEMA_VERSION) {
+  throw new Error(`public/app.js TILE_INDEX_SCHEMA_VERSION ${appSchema} does not match expected ${TILE_INDEX_SCHEMA_VERSION}`);
 }
 if (!index.tiles?.length) throw new Error('cell-tiles-index.json has no tiles');
 if (index.tileCount !== index.tiles.length) {

@@ -1,6 +1,7 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { DECOR_MAPPINGS, COSTA_MESA_BBOX } from './decor-mappings.mjs';
 
+const DERIVED_DIR = new URL('../data/derived/', import.meta.url);
 const OUT_DIR = new URL('../public/data/', import.meta.url);
 const OVERPASS_URL = process.env.OVERPASS_URL || 'https://overpass-api.de/api/interpreter';
 const bbox = `${COSTA_MESA_BBOX.south},${COSTA_MESA_BBOX.west},${COSTA_MESA_BBOX.north},${COSTA_MESA_BBOX.east}`;
@@ -156,10 +157,11 @@ async function main() {
     categories: DECOR_MAPPINGS.map(({ name, color }) => ({ name, color, count: counts[name] || 0 })),
   };
 
-  await writeFile(new URL('decor-spots.geojson', OUT_DIR), JSON.stringify(collection));
+  await mkdir(DERIVED_DIR, { recursive: true });
+  await writeFile(new URL('decor-spots.geojson', DERIVED_DIR), JSON.stringify(collection));
   await writeFile(new URL('manifest.json', OUT_DIR), JSON.stringify(manifest, null, 2));
-  await writeFile(new URL('last-query.overpassql', OUT_DIR), queryLog.join('\n\n'));
-  console.log(`Wrote ${features.length} features to public/data/decor-spots.geojson`);
+  await writeFile(new URL('last-query.overpassql', DERIVED_DIR), queryLog.join('\n\n'));
+  console.log(`Wrote ${features.length} features to data/derived/decor-spots.geojson`);
   console.log(Object.entries(counts).filter(([, n]) => n).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `${k}: ${v}`).join('\n'));
 }
 
