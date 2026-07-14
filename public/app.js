@@ -15,13 +15,16 @@ const featureLayer = L.layerGroup().addTo(map);
 const emojiLayer = L.layerGroup().addTo(map);
 const aggregateLayer = L.layerGroup();
 const detectorLayer = L.layerGroup().addTo(map);
+const solverPinsLayer = L.layerGroup().addTo(map);
 const userLayer = L.layerGroup().addTo(map);
 let allFeatures = [];
 let cellFeatures = [];
 let categories = [];
 let active = new Set();
 let searchText = '';
-let lastScanLatLng = null;
+let lastScanLatLng = null; // solver origin: user location or last scan point
+let lastCompletedScanLatLng = null; // set only by scanDetector; drives scan= sharing
+let pendingSharedScan = null; // incoming scan= kept in the URL until restored or superseded
 let cellBuckets = new Map();
 let decorToCells = new Map();
 let tileIndex = null;
@@ -37,7 +40,12 @@ let activeTileFetches = 0;
 let tileFetchQueue = [];
 let loadingTilePromises = new Map();
 let lastSolverResults = [];
+let scanCellLayers = [];
+let highlightedDecor = null;
 const SOLVER_K = 3;
+const SCAN_CELL_STYLE = { color: '#1565c0', weight: 1, fillColor: '#64b5f6', fillOpacity: 0.18 };
+const SCAN_HIGHLIGHT_STYLE = { color: '#e65100', weight: 2, fillColor: '#ff9800', fillOpacity: 0.4 };
+const MAX_OFFLINE_SAVE_CHUNKS = 80;
 const BUCKET_DEGREES = 0.002;
 const INITIAL_TILE_PAD = 1;
 const DETECTOR_TILE_PAD = 1;
@@ -51,6 +59,13 @@ const MAX_EMOJI_MARKERS = 1500;
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
 const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Clothes Store', 'Makeup Store']);
 const STARTER_CATEGORIES = new Set(['Cafe', 'Bakery', 'Sweetshop', 'Movie Theater', 'Library Bookstore', 'Pharmacy', 'Supermarket', 'Post Office']);
+const FILTER_GROUPS = [
+  ['Food & Drink', ['Restaurant', 'Cafe', 'Sweetshop', 'Bakery', 'Burger Place', 'Sushi Restaurant', 'Italian Restaurant', 'Mexican Restaurant', 'Ramen Restaurant', 'Curry Restaurant']],
+  ['Shops & Services', ['Corner Store', 'Supermarket', 'Pharmacy', 'Makeup Store', 'Clothes Store', 'Hair Salon', 'Appliances Store', 'Diy Store', 'Post Office', 'Hotel']],
+  ['Culture & Fun', ['Movie Theater', 'Library Bookstore', 'Art Gallery', 'University College', 'Zoo', 'Theme Park', 'Stadium', 'Fortune']],
+  ['Nature & Outdoors', ['Park', 'Forest', 'Waterside', 'Beach', 'Mountain']],
+  ['Transit & Landmarks', ['Airport', 'Station', 'Bus Stop', 'Bridge']],
+];
 const DECOR_EMOJI = {
   'Restaurant': '🍽️',
   'Cafe': '☕',
@@ -232,7 +247,6 @@ function draw(options = {}) {
     if (feature.properties.token && emojiBounds && emojiShown < MAX_EMOJI_MARKERS && emojiBounds.contains([lat, lon])) {
       emojiShown++;
       L.marker([lat, lon], {
-        interactive: false,
         keyboard: false,
         icon: L.divIcon({
           className: 'decor-emoji-icon',
@@ -240,7 +254,7 @@ function draw(options = {}) {
           iconSize: [44, 24],
           iconAnchor: [22, 12],
         }),
-      }).addTo(emojiLayer);
+      }).bindPopup(() => popup(feature)).addTo(emojiLayer);
     }
     bounds.push([lat, lon]);
   }
@@ -248,22 +262,60 @@ function draw(options = {}) {
   if (fitSearchResults && shown && shown <= 50 && searchText) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
 }
 
+function filterLabel(cat) {
+  const label = document.createElement('label');
+  label.className = 'filter';
+  label.dataset.name = cat.name.toLowerCase();
+  label.innerHTML = `<input type="checkbox" value="${escapeHtml(cat.name)}">
+    <span class="filter-emoji">${DECOR_EMOJI[cat.name] || '📍'}</span>
+    <span class="swatch" style="background:${cat.color}"></span>
+    <span class="filter-name">${escapeHtml(cat.name)}${NOISY_BY_DEFAULT.has(cat.name) ? ' <small>(noisy)</small>' : ''}</span>
+    <span class="count">${cat.count}</span>`;
+  label.querySelector('input').addEventListener('change', (e) => {
+    if (e.target.checked) active.add(cat.name); else active.delete(cat.name);
+    draw();
+    updateHash();
+  });
+  return label;
+}
+
+function appendFilterGroup(container, title, cats) {
+  const heading = document.createElement('div');
+  heading.className = 'filter-group';
+  heading.textContent = title;
+  container.appendChild(heading);
+  for (const cat of cats) container.appendChild(filterLabel(cat));
+}
+
 function renderFilters() {
   const filters = $('filters');
   filters.innerHTML = '';
-  for (const cat of categories.filter(c => c.count > 0)) {
-    const label = document.createElement('label');
-    label.className = 'filter';
-    label.innerHTML = `<input type="checkbox" value="${escapeHtml(cat.name)}">
-      <span class="swatch" style="background:${cat.color}"></span>
-      <span class="filter-name">${escapeHtml(cat.name)}${NOISY_BY_DEFAULT.has(cat.name) ? ' <small>(noisy)</small>' : ''}</span>
-      <span class="count">${cat.count}</span>`;
-    label.querySelector('input').addEventListener('change', (e) => {
-      if (e.target.checked) active.add(cat.name); else active.delete(cat.name);
-      draw();
-      updateHash();
-    });
-    filters.appendChild(label);
+  const byName = new Map(categories.filter(c => c.count > 0).map(c => [c.name, c]));
+  const grouped = new Set();
+  for (const [title, names] of FILTER_GROUPS) {
+    names.forEach(n => grouped.add(n));
+    const cats = names.map(n => byName.get(n)).filter(Boolean);
+    if (cats.length) appendFilterGroup(filters, title, cats);
+  }
+  const rest = [...byName.values()].filter(c => !grouped.has(c.name));
+  if (rest.length) appendFilterGroup(filters, 'Other', rest);
+  applyFilterSearch();
+}
+
+function applyFilterSearch() {
+  const q = ($('filter-search').value || '').trim().toLowerCase();
+  const labels = [...document.querySelectorAll('#filters .filter')];
+  for (const label of labels) {
+    label.style.display = !q || label.dataset.name.includes(q) ? '' : 'none';
+  }
+  for (const group of document.querySelectorAll('#filters .filter-group')) {
+    let el = group.nextElementSibling;
+    let anyVisible = false;
+    while (el && el.classList?.contains('filter')) {
+      if (el.style.display !== 'none') { anyVisible = true; break; }
+      el = el.nextElementSibling;
+    }
+    group.style.display = anyVisible ? '' : 'none';
   }
 }
 
@@ -322,16 +374,20 @@ function pumpTileFetchQueue() {
   }
 }
 
-function scheduleTileFetch(key) {
-  if (loadingTilePromises.has(key)) return loadingTilePromises.get(key);
+function tileUrl(key) {
   // Tile filenames are stable S2 tokens served with immutable caching, so version the URL
   // by dataset generation — otherwise returning visitors keep year-old tiles after a rebuild.
   const version = encodeURIComponent(tileIndex.generatedAt || TILE_INDEX_SCHEMA_VERSION);
+  return `./data/cell-tiles/${tileByKey.get(key).path}?v=${version}`;
+}
+
+function scheduleTileFetch(key) {
+  if (loadingTilePromises.has(key)) return loadingTilePromises.get(key);
   const promise = new Promise((resolve, reject) => {
     tileFetchQueue.push({
       resolve,
       reject,
-      run: () => fetch(`./data/cell-tiles/${tileByKey.get(key).path}?v=${version}`).then(r => {
+      run: () => fetch(tileUrl(key)).then(r => {
         if (!r.ok) throw new Error(`Tile ${key} failed: HTTP ${r.status}`);
         return r.json();
       }),
@@ -340,6 +396,35 @@ function scheduleTileFetch(key) {
   }).finally(() => loadingTilePromises.delete(key));
   loadingTilePromises.set(key, promise);
   return promise;
+}
+
+async function cacheMissingTiles(keys) {
+  // Tiles loaded before the SW controlled the page are in memory but not in Cache
+  // Storage, and loadTileKeys skips loaded keys — fetch those directly so the SW's
+  // cacheFirst path persists them.
+  if (typeof caches === 'undefined') return;
+  for (const key of keys) {
+    try {
+      if (!(await caches.match(tileUrl(key)))) await fetch(tileUrl(key));
+    } catch {
+      // Offline or storage failure mid-save; countCachedTiles reports the truth after.
+    }
+  }
+}
+
+async function countCachedTiles(keys) {
+  // Loaded-in-memory is not the same as persisted: the SW deliberately swallows
+  // quota failures, so verify against Cache Storage before claiming offline success.
+  if (typeof caches === 'undefined') return 0;
+  let cached = 0;
+  for (const key of keys) {
+    try {
+      if (await caches.match(tileUrl(key))) cached++;
+    } catch {
+      break;
+    }
+  }
+  return cached;
 }
 
 async function loadTileKeys(keys, options = {}) {
@@ -434,6 +519,27 @@ async function loadDecorDataInner() {
   updateZoomLayers();
   updateHash();
   await loadTilesForCurrentView(INITIAL_TILE_PAD);
+  if (initialHash.scan) {
+    // Restore a shared scan: make sure its detector radius has coverage, then scan.
+    // If coverage fails to load, don't scan at all — a partial scan can falsely
+    // report "Roadside-only" for a spot the sender saw full results at.
+    const { lat, lng } = initialHash.scan;
+    const coverageKeys = tileKeysForBounds(boundsAround(lat, lng, 200), 0);
+    if (!coverageKeys.length) {
+      // Valid coordinates, but nothing in the tile index there — scanning would
+      // silently no-op or falsely report Roadside-only.
+      setStatus('The shared spot is outside the covered SoCal area.');
+    } else {
+      try {
+        await loadTileKeys(coverageKeys, { redraw: false });
+        scanDetector(L.latLng(lat, lng));
+        draw();
+      } catch (err) {
+        console.error(err);
+        setStatus('Could not load the shared spot’s area — tap the map there to retry the scan.');
+      }
+    }
+  }
 }
 
 function buildAggregateMarkers() {
@@ -541,10 +647,15 @@ function renderTargetOptions() {
   const options = solverCategories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
   const selectA = $('target-decor');
   const selectB = $('target-decor-2');
+  const avoid = $('avoid-decor');
   selectA.innerHTML = options;
   selectB.innerHTML = `<option value="">— none —</option>${options}`;
+  // Avoid can name any decor, including ambient ones excluded from targets (dodging Park is common).
+  avoid.innerHTML = `<option value="">— none —</option>` +
+    categories.filter(c => c.count > 0).map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
   selectA.value = solverCategories.find(c => c.name === 'Sushi Restaurant')?.name || solverCategories[0]?.name || '';
   selectB.value = '';
+  avoid.value = '';
 }
 
 function cellsWithinDetector(lat, lon) {
@@ -566,7 +677,11 @@ function cellsWithinDetector(lat, lon) {
 function scanDetector(latlng) {
   if (!cellFeatures.length) return;
   lastScanLatLng = latlng;
+  lastCompletedScanLatLng = latlng;
+  pendingSharedScan = null; // a completed scan supersedes any not-yet-restored shared one
   detectorLayer.clearLayers();
+  scanCellLayers = [];
+  highlightedDecor = null;
   L.circle(latlng, { radius: 100, color: '#1e88e5', weight: 2, fillColor: '#1e88e5', fillOpacity: 0.05 }).addTo(detectorLayer);
   L.circleMarker(latlng, { radius: 6, color: '#0d47a1', fillColor: '#2196f3', fillOpacity: 1 }).addTo(detectorLayer);
 
@@ -575,11 +690,51 @@ function scanDetector(latlng) {
   for (const cell of cells) for (const d of cell.properties.decors) decorCounts.set(d, (decorCounts.get(d) || 0) + 1);
   const sorted = [...decorCounts.entries()].sort((a, b) => b[1] - a[1]);
   for (const cell of cells) {
-    L.geoJSON(cell, { style: { color: '#1565c0', weight: 1, fillColor: '#64b5f6', fillOpacity: 0.18 } }).addTo(detectorLayer);
+    const layer = L.geoJSON(cell, { style: SCAN_CELL_STYLE }).addTo(detectorLayer);
+    scanCellLayers.push({ cell, layer });
   }
-  $('detector-output').innerHTML = sorted.length
-    ? `<strong>${cells.length}</strong> cells in range<br>${sorted.map(([d, n]) => `${escapeHtml(d)}: ${n}`).join('<br>')}`
-    : 'No decor cells in range; likely Roadside-only.';
+  const shareButton = `<br><button class="mini-btn" data-share>Share this spot</button>`;
+  $('detector-output').innerHTML = (sorted.length
+    ? `<strong>${cells.length}</strong> cells in range<br>` +
+      sorted.map(([d, n]) => `<a href="#" class="decor-line" data-decor="${escapeHtml(d)}">${escapeHtml(d)}: ${n}</a>`).join('<br>')
+    : 'No decor cells in range; likely Roadside-only.') + shareButton;
+  updateHash();
+}
+
+function toggleScanHighlight(decor) {
+  highlightedDecor = highlightedDecor === decor ? null : decor;
+  for (const { cell, layer } of scanCellLayers) {
+    const on = highlightedDecor && cell.properties.decors.includes(highlightedDecor);
+    layer.setStyle(on ? SCAN_HIGHLIGHT_STYLE : SCAN_CELL_STYLE);
+  }
+  for (const line of document.querySelectorAll('#detector-output .decor-line')) {
+    line.classList?.toggle('active', line.dataset.decor === highlightedDecor);
+  }
+}
+
+async function shareScan() {
+  if (!lastCompletedScanLatLng) return;
+  // Build the link around the scan point itself — currentHash() would also embed the
+  // present map center, disclosing wherever the user has since panned to.
+  const { lat, lng } = lastCompletedScanLatLng;
+  const zoom = Math.max(map.getZoom(), 16);
+  const parts = [
+    `map=${zoom}/${lat.toFixed(5)}/${lng.toFixed(5)}`,
+    `decors=${[...active].sort().map(encodeURIComponent).join(',')}`,
+    `scan=${lat.toFixed(5)}/${lng.toFixed(5)}`,
+  ];
+  const url = `${location.origin}${location.pathname}#${parts.join('&')}`;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'Pikmin detector spot', url });
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    setStatus('Spot link copied to clipboard.');
+  } catch (err) {
+    if (err?.name === 'AbortError') return; // user closed the share sheet
+    setStatus(`Copy this link to share: ${url}`);
+  }
 }
 
 function scanAt(lat, lon) {
@@ -634,8 +789,22 @@ function searchCandidatePositions(seedCells, predicate, k = SOLVER_K) {
   return results;
 }
 
+function showSolverPins(results) {
+  solverPinsLayer.clearLayers();
+  results.forEach((r, i) => {
+    const marker = L.marker([r.lat, r.lon], {
+      keyboard: false,
+      icon: L.divIcon({ className: 'result-pin', html: String(i + 1), iconSize: [28, 28], iconAnchor: [14, 14] }),
+    });
+    marker.bindTooltip(`Result ${i + 1} · ${Math.round(r.dist)}m — click to scan`);
+    marker.on('click', () => scanDetector(L.latLng(r.lat, r.lon)));
+    marker.addTo(solverPinsLayer);
+  });
+}
+
 function showSolverResults(results, label) {
   lastSolverResults = results;
+  showSolverPins(results);
   if (!results.length) {
     const loaded = tileIndex ? `${loadedTileKeys.size}/${tileIndex.tileCount}` : 'nearby';
     $('solver-output').textContent = `No nearby ${label} spot found in the loaded search area (${loaded} chunks searched). Try panning closer to the area you want and search again.`;
@@ -689,6 +858,10 @@ function setSolverBusy(isBusy) {
 
 async function withSolverBusy(fn) {
   if (solverInFlight) return;
+  // Old pins would describe a different query (and stay clickable) once a new
+  // search starts or exits on validation/error — clear them up front.
+  solverPinsLayer.clearLayers();
+  lastSolverResults = [];
   setSolverBusy(true);
   try {
     await fn();
@@ -725,12 +898,21 @@ async function findComboTarget() {
       $('solver-output').textContent = 'Choose a target decor first.';
       return;
     }
-    $('solver-output').textContent = `Searching nearby ${targets.join(' + ')} cells…`;
+    const avoid = $('avoid-decor').value;
+    if (avoid && targets.includes(avoid)) {
+      $('solver-output').textContent = 'The avoid decor is also a target — pick a different one.';
+      return;
+    }
+    const describe = `${targets.join(' + ')}${avoid ? ` without ${avoid}` : ''}`;
+    $('solver-output').textContent = `Searching nearby ${describe} cells…`;
     const getSeedCells = () => targets
       .map(t => decorToCells.get(t) || [])
       .sort((a, b) => a.length - b.length)[0] || [];
-    const results = await expandSearchUntilEnough(getSeedCells, (scan) => targets.every(t => scan.decors.has(t)));
-    showSolverResults(results, targets.map(t => escapeHtml(t)).join(' + '));
+    const results = await expandSearchUntilEnough(
+      getSeedCells,
+      (scan) => targets.every(t => scan.decors.has(t)) && (!avoid || !scan.decors.has(avoid))
+    );
+    showSolverResults(results, escapeHtml(describe));
   });
 }
 
@@ -767,9 +949,29 @@ function parseHash() {
       if (valid) out.view = { z: Math.round(z), lat, lng };
     } else if (key === 'decors') {
       out.decors = value.split(',').filter(Boolean).map(safeDecode).filter(d => d !== null);
+    } else if (key === 'scan') {
+      const parts = value.split('/');
+      if (parts.length !== 2 || parts.some(p => p === '')) continue;
+      const [lat, lng] = parts.map(Number);
+      if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= -85 && lat <= 85 && lng >= -180 && lng <= 180) {
+        out.scan = { lat, lng };
+      }
     }
   }
   return out;
+}
+
+function currentHash() {
+  const c = map.getCenter();
+  const parts = [
+    `map=${map.getZoom()}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`,
+    `decors=${[...active].sort().map(encodeURIComponent).join(',')}`,
+  ];
+  // While a shared scan is still being restored (or failed to restore), keep it in the
+  // URL so a reload can retry it instead of silently dropping the shared spot.
+  const scanPoint = lastCompletedScanLatLng || pendingSharedScan;
+  if (scanPoint) parts.push(`scan=${scanPoint.lat.toFixed(5)}/${scanPoint.lng.toFixed(5)}`);
+  return `#${parts.join('&')}`;
 }
 
 let hashUpdateTimer = null;
@@ -779,12 +981,7 @@ function updateHash() {
     // Before categories load we can't render the decors= part, and the hash-view setView
     // already fired moveend — rewriting now would strip filters from a shared URL.
     if (!decorDataReady) return;
-    const c = map.getCenter();
-    const parts = [
-      `map=${map.getZoom()}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`,
-      `decors=${[...active].sort().map(encodeURIComponent).join(',')}`,
-    ];
-    history.replaceState(null, '', `#${parts.join('&')}`);
+    history.replaceState(null, '', currentHash());
   }, 200);
 }
 
@@ -834,6 +1031,139 @@ $('clear-all').addEventListener('click', () => {
 });
 $('find-pure').addEventListener('click', () => findPureTarget());
 $('find-combo').addEventListener('click', () => findComboTarget());
+$('fab-locate').addEventListener('click', () => centerOnUser());
+$('filter-search').addEventListener('input', () => applyFilterSearch());
+$('save-offline').addEventListener('click', async () => {
+  try {
+    await loadDecorData();
+    if (map.getZoom() < CELL_MIN_ZOOM) {
+      setStatus('Zoom in to the area you want to save first.');
+      return;
+    }
+    const keys = tileKeysForBounds(map.getBounds(), 3);
+    if (!keys.length) {
+      setStatus('No decor data covers this area — it may be outside the LA/OC region.');
+      return;
+    }
+    if (keys.length > MAX_OFFLINE_SAVE_CHUNKS) {
+      setStatus('Area too large to save — zoom in a bit more.');
+      return;
+    }
+    setStatus(`Saving ${keys.length} chunk(s) for offline…`);
+    await loadTileKeys(keys, { redraw: false });
+    draw();
+    await cacheMissingTiles(keys);
+    const cachedCount = await countCachedTiles(keys);
+    if (cachedCount === keys.length) {
+      setStatus(`Area saved for offline · ${cachedCount}/${keys.length} chunks cached on this device`);
+    } else if (cachedCount > 0) {
+      setStatus(`Partially saved · ${cachedCount}/${keys.length} chunks cached — device storage may be full, try again`);
+    } else {
+      setStatus('Area loaded for this session. Offline caching isn’t active yet — it finishes setting up on your next visit.');
+    }
+  } catch (err) {
+    console.error(err);
+    setStatus('Could not save this area — check your connection and try again.');
+  }
+});
+$('detector-output').addEventListener('click', (e) => {
+  if (e.target.closest('[data-share]')) {
+    shareScan();
+    return;
+  }
+  const line = e.target.closest('[data-decor]');
+  if (!line) return;
+  e.preventDefault();
+  toggleScanHighlight(line.dataset.decor);
+});
+window.addEventListener('online', updateOnlineBadge);
+window.addEventListener('offline', updateOnlineBadge);
+function updateOnlineBadge() {
+  $('offline-badge').hidden = navigator.onLine !== false;
+}
+updateOnlineBadge();
+
+// --- Mobile bottom sheet ---
+const sidebar = document.getElementById('sidebar');
+const sheetHandle = $('sheet-handle');
+let sheetState = 'half';
+let sheetDragStartY = null;
+let sheetDragStartOffset = 0;
+let sheetJustDragged = false;
+
+function isMobileSheet() {
+  return !!window.matchMedia?.('(max-width: 800px)')?.matches;
+}
+
+function currentSheetOffset() {
+  const match = /translateY\((-?\d+(?:\.\d+)?)px\)/.exec(sidebar.style.transform || '');
+  return match ? Number(match[1]) : 0;
+}
+
+function sheetOffsets() {
+  const h = sidebar.offsetHeight || 0;
+  return { full: 0, half: Math.round(h * 0.5), peek: Math.max(0, h - 92) };
+}
+
+function applySheetState() {
+  sheetHandle.setAttribute('aria-expanded', String(sheetState !== 'peek'));
+  if (!isMobileSheet()) {
+    sidebar.style.transform = '';
+    return;
+  }
+  sidebar.style.transform = `translateY(${sheetOffsets()[sheetState]}px)`;
+}
+
+function cycleSheetState() {
+  sheetState = sheetState === 'peek' ? 'half' : sheetState === 'half' ? 'full' : 'peek';
+  applySheetState();
+}
+
+sheetHandle.addEventListener('click', () => {
+  // A drag also fires a trailing click; don't let it undo the snap we just made.
+  if (sheetJustDragged) {
+    sheetJustDragged = false;
+    return;
+  }
+  cycleSheetState();
+});
+sheetHandle.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  cycleSheetState();
+});
+sheetHandle.addEventListener('pointerdown', (e) => {
+  if (!isMobileSheet()) return;
+  sheetDragStartY = e.clientY;
+  sheetDragStartOffset = currentSheetOffset();
+  sidebar.style.transition = 'none';
+  sheetHandle.setPointerCapture?.(e.pointerId);
+});
+sheetHandle.addEventListener('pointermove', (e) => {
+  if (sheetDragStartY === null) return;
+  const { peek } = sheetOffsets();
+  const next = Math.min(Math.max(0, sheetDragStartOffset + (e.clientY - sheetDragStartY)), peek);
+  sidebar.style.transform = `translateY(${next}px)`;
+});
+function endSheetDrag(e, cancelled = false) {
+  if (sheetDragStartY === null) return;
+  const moved = Math.abs(e.clientY - sheetDragStartY) > 8;
+  sheetDragStartY = null;
+  sidebar.style.transition = '';
+  // A cancelled pointer sequence emits no trailing click, so leaving the
+  // suppression flag set would swallow the next legitimate tap.
+  sheetJustDragged = moved && !cancelled;
+  if (!moved) return; // let the click handler cycle states instead
+  const offset = currentSheetOffset();
+  const offsets = sheetOffsets();
+  sheetState = Object.entries(offsets)
+    .reduce((best, entry) => Math.abs(entry[1] - offset) < Math.abs(best[1] - offset) ? entry : best)[0];
+  applySheetState();
+}
+sheetHandle.addEventListener('pointerup', (e) => endSheetDrag(e, false));
+sheetHandle.addEventListener('pointercancel', (e) => endSheetDrag(e, true));
+window.addEventListener('resize', applySheetState);
+applySheetState();
 $('solver-output').addEventListener('click', (e) => {
   const link = e.target.closest('[data-result-index]');
   if (!link) return;
@@ -873,6 +1203,7 @@ map.on('moveend', () => {
 map.on('zoomend', updateZoomLayers);
 
 const initialHash = parseHash();
+pendingSharedScan = initialHash.scan ? { lat: initialHash.scan.lat, lng: initialHash.scan.lng } : null;
 initBasemapOnly();
 if (initialHash.view) map.setView([initialHash.view.lat, initialHash.view.lng], initialHash.view.z);
 loadDecorData().catch(err => {

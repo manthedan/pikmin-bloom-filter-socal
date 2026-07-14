@@ -14,6 +14,7 @@
 </head>
 <body>
   <aside id="sidebar">
+    <div class="sheet-handle" id="sheet-handle" role="button" tabindex="0" aria-label="Expand or collapse panel"><span></span></div>
     <header>
       <div class="eyebrow">Unofficial detector planner</div>
       <h1>SoCal Pikmin Detector</h1>
@@ -29,6 +30,7 @@
       <div><strong id="visible-count">0</strong> shown</div>
       <div><span id="total-count">0</span></div>
       <small id="generated" aria-live="polite">Starting map…</small>
+      <small id="offline-badge" class="offline-badge" hidden>Offline — showing cached data</small>
     </div>
 
     <div class="actions primary-actions">
@@ -39,6 +41,7 @@
       <button id="core-view">Starter spots</button>
       <button id="clear-all">Clear map</button>
       <button id="select-all" class="danger">Select all</button>
+      <button id="save-offline">Save area offline</button>
     </div>
     <p class="hint">Starter decor overlays load automatically around your current map view. Location is only used in your browser.</p>
 
@@ -54,6 +57,10 @@
         Target decor B optional
         <select id="target-decor-2"></select>
       </label>
+      <label class="search-label">
+        Avoid decor optional
+        <select id="avoid-decor"></select>
+      </label>
       <button id="find-combo" class="primary wide">Find 3 nearby matching spots</button>
       <button id="find-pure" class="wide">Find 3 nearby clean target-only spots</button>
       <div id="solver-output" aria-live="polite"></div>
@@ -61,6 +68,7 @@
 
     <details class="card filter-panel">
       <summary>Decor overlay filters</summary>
+      <input id="filter-search" type="search" placeholder="Find a decor type…" aria-label="Find a decor type" />
       <section id="filters" aria-label="Decor filters"></section>
     </details>
 
@@ -73,6 +81,7 @@
 
   <main>
     <div id="map"></div>
+    <button id="fab-locate" class="fab" title="Scan at my location" aria-label="Scan at my location">📡</button>
   </main>
 
   <script src="./vendor/leaflet/leaflet.js" defer></script>
