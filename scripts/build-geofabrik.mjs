@@ -117,7 +117,8 @@ async function main() {
     });
   }
 
-  const counts = Object.fromEntries(DECOR_MAPPINGS.map(d => [d.name, 0]));
+  const activeMappings = DECOR_MAPPINGS.filter(d => !d.retired);
+  const counts = Object.fromEntries(activeMappings.map(d => [d.name, 0]));
   for (const f of features) for (const d of f.properties.decors) counts[d]++;
   const manifest = {
     generatedAt: new Date().toISOString(),
@@ -126,7 +127,7 @@ async function main() {
     bbox: BBOX.split(',').map(Number),
     featureCount: features.length,
     counts,
-    categories: DECOR_MAPPINGS.map(({ name, color }) => ({ name, color, count: counts[name] || 0 })),
+    categories: activeMappings.map(({ name, color }) => ({ name, color, count: counts[name] || 0 })),
   };
   const collection = {
     type: 'FeatureCollection',

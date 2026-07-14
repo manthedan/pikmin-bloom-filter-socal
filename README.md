@@ -49,8 +49,8 @@ Data layout:
 ## Current generated dataset
 
 - Region bbox: `[-118.70, 33.52, -117.66, 34.35]`
-- OSM decor candidate spots: `100,825`
-- Approximate S2 level-17 decor cells: `238,923`
+- OSM decor candidate spots: `81,582`
+- Approximate S2 level-17 decor cells: `234,990`
 - Static S2 parent level-11 chunks: `399` (schema v3, includes top spot names per cell)
 
 ## Other regions
@@ -64,8 +64,9 @@ REGION=amsterdam BBOX=4.72,52.28,5.03,52.43 npm run build
 
 ## Notes
 
-- Unofficial and approximate. In-game results can differ.
-- Detector simulation uses 100m range and decor-cell centers, based on community research.
+- Unofficial and approximate. In-game results can differ: the game blends OpenStreetMap with Foursquare/Yelp/Google Places data and runs on an OSM snapshot that may be years old, so an OSM-derived map has both false positives and false negatives.
+- Detector simulation uses 100m range and decor-cell centers, matching community research (the detector counts cells whose center-point falls within the radius).
+- Tag→decor mappings follow the community-verified tables (OSM wiki, pixlpirate/pikmin-map, PikminDecorPredictor, Pikipedia). Fortune (shrine/temple) decor is excluded because it is Japan-only. Weather decors (Rainy/Snowy Day) and Roadside fallback decors are not map-based and are not shown.
 - The app is an installable PWA; the app shell and visited decor chunks work offline (basemap tiles are not cached).
 - Map position and active decor filters live in the URL hash (`#map=z/lat/lon&decors=…`), so views are shareable links.
 - The basemap uses [CARTO basemaps](https://carto.com/basemaps/) on their free tier (attribution required, non-commercial scale). If you fork this for something bigger, bring your own basemap.

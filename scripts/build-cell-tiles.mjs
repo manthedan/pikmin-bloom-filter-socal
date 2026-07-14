@@ -1,10 +1,10 @@
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { S2CellId, S2Cell, S2LatLng } from 'nodes2ts';
+import { DECOR_MAPPINGS } from './decor-mappings.mjs';
 
 const CELL_LEVEL = Number(process.env.S2_LEVEL || 17);
 const PARENT_LEVEL = Number(process.env.S2_PARENT_LEVEL || 11);
 const IN = new URL(`../data/derived/decor-cells-l${CELL_LEVEL}.geojson`, import.meta.url);
-const MANIFEST = new URL('../public/data/manifest.json', import.meta.url);
 const OUT_ROOT = new URL('../public/data/cell-tiles/', import.meta.url);
 const INDEX = new URL('../public/data/cell-tiles-index.json', import.meta.url);
 
@@ -54,12 +54,12 @@ function namesForCell(spots) {
   return names;
 }
 
-const [cells, manifest] = await Promise.all([
-  readFile(IN, 'utf8').then(JSON.parse),
-  readFile(MANIFEST, 'utf8').then(JSON.parse),
-]);
-const decorTypes = manifest.categories.filter(c => c.count > 0).map(c => c.name);
-const colorByDecor = Object.fromEntries(manifest.categories.map(c => [c.name, c.color]));
+const cells = JSON.parse(await readFile(IN, 'utf8'));
+// The legend comes straight from DECOR_MAPPINGS order — including retired placeholder
+// entries and zero-count categories — so bit indices are deterministic and published
+// positions are never reused across deploys (retired bits simply never get set).
+const decorTypes = DECOR_MAPPINGS.map(d => d.name);
+const colorByDecor = Object.fromEntries(DECOR_MAPPINGS.map(d => [d.name, d.color]));
 const bitByDecor = new Map(decorTypes.map((name, i) => [name, i]));
 
 await rm(OUT_ROOT, { recursive: true, force: true });

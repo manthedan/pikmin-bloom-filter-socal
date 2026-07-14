@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-31T17:30:23.266Z",
+  "generatedAt": "2026-07-14T18:13:17.265Z",
   "source": "https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf",
   "region": "la-oc-play-areas",
   "bbox": [
@@ -8,22 +8,22 @@
     -117.66,
     34.35
   ],
-  "featureCount": 100825,
+  "featureCount": 81582,
   "counts": {
     "Restaurant": 8067,
-    "Cafe": 2564,
+    "Cafe": 2620,
     "Sweetshop": 230,
-    "Bakery": 442,
-    "Burger Place": 1767,
-    "Sushi Restaurant": 377,
-    "Italian Restaurant": 1534,
-    "Mexican Restaurant": 1800,
-    "Ramen Restaurant": 849,
-    "Curry Restaurant": 142,
+    "Bakery": 474,
+    "Burger Place": 6453,
+    "Sushi Restaurant": 380,
+    "Italian Restaurant": 1561,
+    "Mexican Restaurant": 1854,
+    "Ramen Restaurant": 861,
+    "Curry Restaurant": 148,
     "Corner Store": 1594,
     "Supermarket": 1166,
     "Pharmacy": 818,
-    "Makeup Store": 2106,
+    "Makeup Store": 1260,
     "Clothes Store": 1945,
     "Hair Salon": 1152,
     "Appliances Store": 196,
@@ -33,20 +33,22 @@
     "Art Gallery": 432,
     "Hotel": 2351,
     "Post Office": 508,
-    "University College": 225,
-    "Park": 25716,
+    "University College": 1074,
+    "Park": 3425,
     "Forest": 1504,
     "Waterside": 7774,
     "Beach": 125,
     "Mountain": 271,
     "Zoo": 8,
-    "Theme Park": 21,
-    "Airport": 19,
+    "Theme Park": 16,
+    "Airport": 16,
     "Station": 184,
-    "Bus Stop": 22508,
-    "Bridge": 14741,
+    "Bus Stop": 22232,
+    "Bridge": 14776,
     "Stadium": 107,
-    "Fortune": 55
+    "Korean Restaurant": 251,
+    "Laundromat": 643,
+    "Stationery Store": 167
   },
   "categories": [
     {
@@ -57,7 +59,7 @@
     {
       "name": "Cafe",
       "color": "#8b5a2b",
-      "count": 2564
+      "count": 2620
     },
     {
       "name": "Sweetshop",
@@ -67,37 +69,37 @@
     {
       "name": "Bakery",
       "color": "#d99b44",
-      "count": 442
+      "count": 474
     },
     {
       "name": "Burger Place",
       "color": "#f39c12",
-      "count": 1767
+      "count": 6453
     },
     {
       "name": "Sushi Restaurant",
       "color": "#1abc9c",
-      "count": 377
+      "count": 380
     },
     {
       "name": "Italian Restaurant",
       "color": "#27ae60",
-      "count": 1534
+      "count": 1561
     },
     {
       "name": "Mexican Restaurant",
       "color": "#c0392b",
-      "count": 1800
+      "count": 1854
     },
     {
       "name": "Ramen Restaurant",
       "color": "#e67e22",
-      "count": 849
+      "count": 861
     },
     {
       "name": "Curry Restaurant",
       "color": "#d35400",
-      "count": 142
+      "count": 148
     },
     {
       "name": "Corner Store",
@@ -117,7 +119,7 @@
     {
       "name": "Makeup Store",
       "color": "#e84393",
-      "count": 2106
+      "count": 1260
     },
     {
       "name": "Clothes Store",
@@ -167,12 +169,12 @@
     {
       "name": "University College",
       "color": "#2d3436",
-      "count": 225
+      "count": 1074
     },
     {
       "name": "Park",
       "color": "#00b894",
-      "count": 25716
+      "count": 3425
     },
     {
       "name": "Forest",
@@ -202,12 +204,12 @@
     {
       "name": "Theme Park",
       "color": "#fab1a0",
-      "count": 21
+      "count": 16
     },
     {
       "name": "Airport",
       "color": "#74b9ff",
-      "count": 19
+      "count": 16
     },
     {
       "name": "Station",
@@ -217,12 +219,12 @@
     {
       "name": "Bus Stop",
       "color": "#fdcb6e",
-      "count": 22508
+      "count": 22232
     },
     {
       "name": "Bridge",
       "color": "#b2bec3",
-      "count": 14741
+      "count": 14776
     },
     {
       "name": "Stadium",
@@ -230,9 +232,19 @@
       "count": 107
     },
     {
-      "name": "Fortune",
-      "color": "#f368e0",
-      "count": 55
+      "name": "Korean Restaurant",
+      "color": "#b71540",
+      "count": 251
+    },
+    {
+      "name": "Laundromat",
+      "color": "#82ccdd",
+      "count": 643
+    },
+    {
+      "name": "Stationery Store",
+      "color": "#6a89cc",
+      "count": 167
     }
   ]
 }

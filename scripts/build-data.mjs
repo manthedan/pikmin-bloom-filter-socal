@@ -29,7 +29,9 @@ function buildOverpassQueryForDecor(decor) {
 
 async function fetchOverpass(query) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 30000);
+  // Must exceed the [timeout:45] Overpass gives itself, or heavy queries (e.g.
+  // amenity=fast_food) get client-aborted and the whole decor is silently skipped.
+  const timer = setTimeout(() => controller.abort(), 90000);
   let res;
   try {
     res = await fetch(OVERPASS_URL, {
@@ -97,6 +99,7 @@ async function main() {
   const allElements = [];
   const queryLog = [];
   for (const decor of DECOR_MAPPINGS) {
+    if (decor.retired) continue;
     const query = buildOverpassQueryForDecor(decor);
     queryLog.push(`// ${decor.name}\n${query}`);
     try {
@@ -137,7 +140,8 @@ async function main() {
   }
 
   features.sort((a, b) => String(a.properties.name).localeCompare(String(b.properties.name)));
-  const counts = Object.fromEntries(DECOR_MAPPINGS.map(d => [d.name, 0]));
+  const activeMappings = DECOR_MAPPINGS.filter(d => !d.retired);
+  const counts = Object.fromEntries(activeMappings.map(d => [d.name, 0]));
   for (const f of features) for (const d of f.properties.decors) counts[d]++;
 
   const collection = {
@@ -154,7 +158,7 @@ async function main() {
     bbox: collection.bbox,
     featureCount: features.length,
     counts,
-    categories: DECOR_MAPPINGS.map(({ name, color }) => ({ name, color, count: counts[name] || 0 })),
+    categories: activeMappings.map(({ name, color }) => ({ name, color, count: counts[name] || 0 })),
   };
 
   await mkdir(DERIVED_DIR, { recursive: true });

@@ -59,12 +59,12 @@ const CELL_MIN_ZOOM = 13;
 const MAX_EMOJI_MARKERS = 1500;
 
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
-const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Clothes Store', 'Makeup Store']);
+const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Burger Place', 'Clothes Store', 'Makeup Store']);
 const STARTER_CATEGORIES = new Set(['Cafe', 'Bakery', 'Sweetshop', 'Movie Theater', 'Library Bookstore', 'Pharmacy', 'Supermarket', 'Post Office']);
 const FILTER_GROUPS = [
-  ['Food & Drink', ['Restaurant', 'Cafe', 'Sweetshop', 'Bakery', 'Burger Place', 'Sushi Restaurant', 'Italian Restaurant', 'Mexican Restaurant', 'Ramen Restaurant', 'Curry Restaurant']],
-  ['Shops & Services', ['Corner Store', 'Supermarket', 'Pharmacy', 'Makeup Store', 'Clothes Store', 'Hair Salon', 'Appliances Store', 'Diy Store', 'Post Office', 'Hotel']],
-  ['Culture & Fun', ['Movie Theater', 'Library Bookstore', 'Art Gallery', 'University College', 'Zoo', 'Theme Park', 'Stadium', 'Fortune']],
+  ['Food & Drink', ['Restaurant', 'Cafe', 'Sweetshop', 'Bakery', 'Burger Place', 'Sushi Restaurant', 'Italian Restaurant', 'Mexican Restaurant', 'Korean Restaurant', 'Ramen Restaurant', 'Curry Restaurant']],
+  ['Shops & Services', ['Corner Store', 'Supermarket', 'Pharmacy', 'Makeup Store', 'Clothes Store', 'Hair Salon', 'Appliances Store', 'Diy Store', 'Laundromat', 'Stationery Store', 'Post Office', 'Hotel']],
+  ['Culture & Fun', ['Movie Theater', 'Library Bookstore', 'Art Gallery', 'University College', 'Zoo', 'Theme Park', 'Stadium']],
   ['Nature & Outdoors', ['Park', 'Forest', 'Waterside', 'Beach', 'Mountain']],
   ['Transit & Landmarks', ['Airport', 'Station', 'Bus Stop', 'Bridge']],
 ];
@@ -77,6 +77,7 @@ const DECOR_EMOJI = {
   'Sushi Restaurant': '🍣',
   'Italian Restaurant': '🍝',
   'Mexican Restaurant': '🌮',
+  'Korean Restaurant': '🥬',
   'Ramen Restaurant': '🍜',
   'Curry Restaurant': '🍛',
   'Corner Store': '🏪',
@@ -87,6 +88,8 @@ const DECOR_EMOJI = {
   'Hair Salon': '💇',
   'Appliances Store': '🔌',
   'Diy Store': '🛠️',
+  'Laundromat': '🧺',
+  'Stationery Store': '✏️',
   'Movie Theater': '🎬',
   'Library Bookstore': '📚',
   'Art Gallery': '🖼️',
@@ -105,7 +108,6 @@ const DECOR_EMOJI = {
   'Bus Stop': '🚌',
   'Bridge': '🌉',
   'Stadium': '🏟️',
-  'Fortune': '🔮',
 };
 
 const $ = (id) => document.getElementById(id);
@@ -364,8 +366,9 @@ function tileKeysForBounds(bounds, pad = 0) {
 }
 
 function maskToDecors(mask) {
-  // Do NOT rewrite this with bitwise ops: there are 37 decor types, and JS bitwise
-  // operators truncate to 32 bits. Float division stays exact well below 2^53.
+  // Do NOT rewrite this with bitwise ops: the decor legend has more than 32 entries
+  // (40 as of 2026-07, including retired placeholder slots), and JS bitwise operators
+  // truncate to 32 bits. Float division stays exact well below 2^53.
   const decors = [];
   for (let i = 0; i < tileIndex.decorTypes.length; i++) {
     if (Math.floor(mask / (2 ** i)) % 2 === 1) decors.push(tileIndex.decorTypes[i]);
@@ -540,7 +543,11 @@ async function loadDecorDataInner() {
   active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name));
   if (Array.isArray(initialHash.decors)) {
     const known = new Set(categories.map(c => c.name));
-    active = new Set(initialHash.decors.filter(d => known.has(d)));
+    const requested = initialHash.decors.filter(d => known.has(d));
+    // A link whose every decor has since been removed from the dataset (e.g. old
+    // Fortune links) keeps the starter view instead of rendering a blank map; a
+    // deliberately empty decors= (all filters off) is still honored.
+    if (requested.length || initialHash.decors.length === 0) active = new Set(requested);
   }
   decorDataReady = true;
   setStatus(`Generated ${new Date(manifest.generatedAt).toLocaleString()} · ${tileIndex.tileCount} chunks available`);
