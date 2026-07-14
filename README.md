@@ -71,6 +71,12 @@ REGION=amsterdam BBOX=4.72,52.28,5.03,52.43 npm run build
 - The basemap uses [CARTO basemaps](https://carto.com/basemaps/) on their free tier (attribution required, non-commercial scale). If you fork this for something bigger, bring your own basemap.
 - Data rebuilds rewrite all ~400 chunk files under `public/data/cell-tiles/`, so git history grows with each dataset refresh.
 
+## Acknowledgments
+
+- **[PikMap](https://pikmap.app)** — the excellent Pikmin Bloom decor cell map covering Taiwan, Japan, and South Korea. This project exists because PikMap doesn't (yet) cover Southern California, and it borrows shamelessly from their design: the muted basemap, icon-first cell rendering, and floating map chrome are all PikMap-inspired. `scripts/compare-pikmap-park.mjs` was used to sanity-check this project's OSM-derived cells against PikMap's data for Daan Forest Park in Taipei. If you play in Asia, use PikMap — it's better.
+- The Pikmin Bloom community's research into detector mechanics and S2 level-17 decor cells.
+- [OpenStreetMap](https://www.openstreetmap.org) contributors and [Geofabrik](https://download.geofabrik.de/) for the data this is built on.
+
 ## Licensing
 
 - **Code**: [MIT](LICENSE).
