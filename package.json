@@ -1,7 +1,7 @@
 {
   "name": "costa-mesa-pikmin-map",
   "version": "1.0.0",
-  "description": "",
+  "description": "Unofficial Pikmin Bloom detector planner for LA/OC, built from OpenStreetMap data",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -15,9 +15,9 @@
     "netlify:build": "node scripts/validate-static-export.mjs",
     "export": "node scripts/validate-static-export.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["pikmin-bloom", "openstreetmap", "s2", "leaflet", "map"],
+  "author": "manthedan",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@turf/boolean-point-in-polygon": "^7.3.5",

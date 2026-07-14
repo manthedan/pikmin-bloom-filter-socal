@@ -2,6 +2,8 @@
 
 A fast, static, OSM-derived prototype for Pikmin Bloom detector planning in Los Angeles and Orange County play areas.
 
+> Unofficial fan project. Not affiliated with, endorsed by, or connected to Nintendo or Niantic. Pikmin is a trademark of Nintendo.
+
 The app uses precomputed Geofabrik/OpenStreetMap data, approximate S2 level-17 decor cells, compact S2 parent level-11 JSON chunks, and a 100m detector simulator.
 
 ## Run locally
@@ -51,10 +53,26 @@ Data layout:
 - Approximate S2 level-17 decor cells: `238,923`
 - Static S2 parent level-11 chunks: `399` (schema v3, includes top spot names per cell)
 
+## Other regions
+
+The build pipeline is parameterized — `GEOFABRIK_URL`, `REGION`, and `BBOX` (W,S,E,N) env vars control the extract, so other regions can be built the same way:
+
+```bash
+GEOFABRIK_URL=https://download.geofabrik.de/europe/netherlands-latest.osm.pbf \
+REGION=amsterdam BBOX=4.72,52.28,5.03,52.43 npm run build
+```
+
 ## Notes
 
 - Unofficial and approximate. In-game results can differ.
-- Data attribution: © OpenStreetMap contributors.
 - Detector simulation uses 100m range and decor-cell centers, based on community research.
 - The app is an installable PWA; the app shell and visited decor chunks work offline (basemap tiles are not cached).
 - Map position and active decor filters live in the URL hash (`#map=z/lat/lon&decors=…`), so views are shareable links.
+- The basemap uses [CARTO basemaps](https://carto.com/basemaps/) on their free tier (attribution required, non-commercial scale). If you fork this for something bigger, bring your own basemap.
+- Data rebuilds rewrite all ~400 chunk files under `public/data/cell-tiles/`, so git history grows with each dataset refresh.
+
+## Licensing
+
+- **Code**: [MIT](LICENSE).
+- **Data** (`public/data/`): derivative database of [OpenStreetMap](https://www.openstreetmap.org/copyright) data, available under the [ODbL 1.0](https://opendatacommons.org/licenses/odbl/) — © OpenStreetMap contributors.
+- **Bundled**: [Leaflet](https://leafletjs.com) (BSD-2-Clause) under `public/vendor/leaflet/`.

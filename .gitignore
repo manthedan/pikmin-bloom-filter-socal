@@ -1,6 +1,8 @@
 node_modules/
 .DS_Store
 .netlify/
+# Third-party local agent tooling (unlicensed for redistribution)
+.agents/
 data/osm/*.osm.pbf
 data/osm/*.raw.geojson
 data/derived/
