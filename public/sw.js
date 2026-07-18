@@ -1,11 +1,12 @@
 // App-shell service worker: the map is a field tool, so keep the shell and already-visited
 // decor chunks usable offline. Basemap tiles are cross-origin and intentionally not cached.
-const SHELL_CACHE = 'shell-v1';
+const SHELL_CACHE = 'shell-v2';
 const DATA_CACHE = 'data-v1';
 const SHELL_URLS = [
   './',
   './index.html',
   './app.js',
+  './app-core.js',
   './styles.css',
   './manifest.webmanifest',
   './icons/icon-192.png',

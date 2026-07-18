@@ -6,6 +6,15 @@
   NODE_VERSION = "22"
 
 [[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; img-src 'self' data: blob: https://*.basemaps.cartocdn.com; manifest-src 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; worker-src 'self'"
+    Permissions-Policy = "geolocation=(self)"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+
+[[headers]]
   for = "/"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
@@ -17,6 +26,11 @@
 
 [[headers]]
   for = "/app.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/app-core.js"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 

@@ -1,3 +1,5 @@
+import { featureMatchesQuery, parseAppHash, pointInBbox } from './app-core.js';
+
 const COSTA_MESA_CENTER = [33.6638, -117.9047];
 const map = L.map('map', { preferCanvas: true }).setView(COSTA_MESA_CENTER, 13);
 
@@ -19,6 +21,7 @@ const aggregateLayer = L.layerGroup();
 const detectorLayer = L.layerGroup().addTo(map);
 const solverPinsLayer = L.layerGroup().addTo(map);
 const userLayer = L.layerGroup().addTo(map);
+const coverageLayer = L.layerGroup().addTo(map);
 let allFeatures = [];
 let cellFeatures = [];
 let categories = [];
@@ -35,9 +38,11 @@ let loadedTileKeys = new Set();
 let loadedCellTokens = new Set();
 let featureLayersByToken = new Map();
 let decorDataReady = false;
+let datasetBbox = null;
 let loadDataPromise = null;
 let currentLocation = null;
 let solverInFlight = false;
+let solverAbortController = null;
 let activeTileFetches = 0;
 let tileFetchQueue = [];
 let loadingTilePromises = new Map();
@@ -45,6 +50,7 @@ let lastSolverResults = [];
 let scanCellLayers = [];
 let highlightedDecor = null;
 const SOLVER_K = 3;
+const DETECTOR_RADIUS_METERS = 100;
 const SCAN_CELL_STYLE = { color: '#1565c0', weight: 1, fillColor: '#64b5f6', fillOpacity: 0.18 };
 const SCAN_HIGHLIGHT_STYLE = { color: '#e65100', weight: 2, fillColor: '#ff9800', fillOpacity: 0.4 };
 const MAX_OFFLINE_SAVE_CHUNKS = 80;
@@ -56,7 +62,7 @@ const SOLVER_EXCLUDED_DECORS = new Set(['Park', 'Waterside', 'Roadside']);
 const TILE_INDEX_SCHEMA_VERSION = 3;
 const MAX_TILE_FETCHES = 6;
 const CELL_MIN_ZOOM = 13;
-const MAX_EMOJI_MARKERS = 1500;
+const MAX_EMOJI_MARKERS = 350;
 
 // These categories are real candidates, but they dominate the first view and make the map unreadable/slow.
 const NOISY_BY_DEFAULT = new Set(['Bus Stop', 'Bridge', 'Park', 'Waterside', 'Restaurant', 'Burger Place', 'Clothes Store', 'Makeup Store']);
@@ -184,14 +190,22 @@ function escapeHtml(s) {
 }
 
 function featureMatches(feature) {
-  const p = feature.properties;
-  if (!p.decors.some(d => active.has(d))) return false;
-  if (!searchText) return true;
-  return p.searchHay.includes(searchText);
+  return featureMatchesQuery(feature, active, searchText);
 }
 
 function updateLoadedCounts() {
   $('total-count').textContent = `${cellFeatures.length.toLocaleString()} loaded cells${tileIndex ? ` / ${tileIndex.cellCount.toLocaleString()} total cells` : ''}`;
+}
+
+function cellStyle(color) {
+  const crowded = active.size > 12 && map.getZoom() <= 14;
+  return {
+    color,
+    weight: crowded ? 0.7 : 1,
+    opacity: crowded ? 0.18 : 0.35,
+    fillColor: color,
+    fillOpacity: crowded ? 0.025 : 0.07,
+  };
 }
 
 function createFeatureLayer(feature) {
@@ -203,7 +217,7 @@ function createFeatureLayer(feature) {
   } else {
     // Cells are a quiet tint on the muted basemap; the emoji layer carries the meaning.
     layer = L.geoJSON(feature, {
-      style: { color, weight: 1, opacity: 0.35, fillColor: color, fillOpacity: 0.07 },
+      style: cellStyle(color),
       pointToLayer: (_, latlng) => L.circleMarker(latlng, pointStyle(color)),
     });
   }
@@ -214,10 +228,50 @@ function createFeatureLayer(feature) {
 function restyleFeatureLayer(layer, feature) {
   const color = primaryColor(feature);
   if (layer.setStyle) {
-    layer.setStyle({ color, fillColor: color });
+    layer.setStyle(cellStyle(color));
   } else if (layer.eachLayer) {
-    layer.eachLayer(child => child.setStyle?.({ color, fillColor: color }));
+    layer.eachLayer(child => child.setStyle?.(cellStyle(color)));
   }
+}
+
+function renderSearchResults(features, totalMatches, inViewCells) {
+  const list = $('search-results');
+  list.replaceChildren();
+  if (!searchText) {
+    list.hidden = true;
+    $('search-status').textContent = 'Search checks all data loaded around the current map view, independent of filters.';
+    return;
+  }
+
+  $('search-status').textContent = totalMatches
+    ? `${totalMatches.toLocaleString()} loaded match${totalMatches === 1 ? '' : 'es'} · ${inViewCells.toLocaleString()} in view`
+    : 'No matches in loaded data. Pan or zoom to another area and try again.';
+  list.hidden = features.length === 0;
+  for (const feature of features.slice(0, 8)) {
+    const p = feature.properties;
+    const item = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.searchToken = p.token || feature.id;
+    button.textContent = p.names?.[0] || p.decors.join(', ');
+    const meta = document.createElement('small');
+    meta.textContent = p.decors.join(' · ');
+    button.appendChild(meta);
+    item.appendChild(button);
+    list.appendChild(item);
+  }
+}
+
+function emojiHtmlForGroup(features) {
+  const decors = [];
+  for (const feature of features) {
+    const selected = selectedDecorsForFeature(feature);
+    for (const decor of selected.length ? selected : feature.properties.decors) {
+      if (!decors.includes(decor)) decors.push(decor);
+    }
+  }
+  const icons = decors.slice(0, 3).map(decor => DECOR_EMOJI[decor] || '📍').join('');
+  return `${icons}<span class="emoji-more">+${features.length}</span>`;
 }
 
 function draw(options = {}) {
@@ -225,55 +279,99 @@ function draw(options = {}) {
   // every moveend, and refitting there would snap the map back while the user pans.
   const { fitSearchResults = false } = options;
   emojiLayer.clearLayers();
-  let shown = 0;
-  let emojiShown = 0;
+  let totalMatches = 0;
   let inViewCells = 0;
   const inViewTypes = new Set();
   const bounds = [];
+  const searchMatches = [];
+  const emojiGroups = new Map();
   const viewBounds = map.getBounds();
-  // Emoji markers are real DOM nodes, so only create them for cells near the current view.
-  const emojiBounds = map.getZoom() >= CELL_MIN_ZOOM ? viewBounds.pad(0.2) : null;
+  const renderBounds = viewBounds.pad(0.15);
+  const emojiBounds = map.getZoom() >= CELL_MIN_ZOOM ? viewBounds.pad(0.08) : null;
+  const crowdedOverview = active.size > 12 && map.getZoom() <= 14;
+  const markerGridSize = crowdedOverview ? 90 : map.getZoom() >= 16 ? 34 : map.getZoom() >= 14 ? 44 : 60;
+
   for (const feature of allFeatures) {
     const token = feature.properties.token || feature.id;
     let layer = featureLayersByToken.get(token);
     const matches = featureMatches(feature);
-    if (!matches) {
-      if (layer && featureLayer.hasLayer(layer)) featureLayer.removeLayer(layer);
+    const [lon, lat] = feature.properties.center;
+    if (matches) {
+      totalMatches++;
+      bounds.push([lat, lon]);
+      if (searchText && searchMatches.length < 8) searchMatches.push(feature);
+    }
+    if (!matches || !renderBounds.contains([lat, lon])) {
+      if (layer) {
+        if (featureLayer.hasLayer(layer)) featureLayer.removeLayer(layer);
+        featureLayersByToken.delete(token);
+      }
       continue;
     }
 
-    shown++;
-    if (!layer) {
-      layer = createFeatureLayer(feature);
-      featureLayersByToken.set(token, layer);
+    if (crowdedOverview) {
+      if (layer) {
+        if (featureLayer.hasLayer(layer)) featureLayer.removeLayer(layer);
+        featureLayersByToken.delete(token);
+        layer = null;
+      }
     } else {
-      restyleFeatureLayer(layer, feature);
+      if (!layer) {
+        layer = createFeatureLayer(feature);
+        featureLayersByToken.set(token, layer);
+      } else {
+        restyleFeatureLayer(layer, feature);
+      }
+      if (!featureLayer.hasLayer(layer)) layer.addTo(featureLayer);
     }
-    if (!featureLayer.hasLayer(layer)) layer.addTo(featureLayer);
 
-    const [lon, lat] = feature.properties.center;
     if (viewBounds.contains([lat, lon])) {
       inViewCells++;
-      for (const d of feature.properties.decors) if (active.has(d)) inViewTypes.add(d);
+      for (const decor of feature.properties.decors) {
+        if (searchText || active.has(decor)) inViewTypes.add(decor);
+      }
     }
-    if (feature.properties.token && emojiBounds && emojiShown < MAX_EMOJI_MARKERS && emojiBounds.contains([lat, lon])) {
-      emojiShown++;
-      L.marker([lat, lon], {
-        keyboard: false,
-        icon: L.divIcon({
-          className: 'decor-emoji-icon',
-          html: emojiForFeature(feature),
-          iconSize: [44, 24],
-          iconAnchor: [22, 12],
-        }),
-      }).bindPopup(() => popup(feature)).addTo(emojiLayer);
+    if (feature.properties.token && emojiBounds?.contains([lat, lon])) {
+      const point = map.latLngToContainerPoint([lat, lon]);
+      const key = `${Math.floor(point.x / markerGridSize)},${Math.floor(point.y / markerGridSize)}`;
+      if (!emojiGroups.has(key)) emojiGroups.set(key, []);
+      emojiGroups.get(key).push(feature);
     }
-    bounds.push([lat, lon]);
   }
-  $('visible-count').textContent = shown.toLocaleString();
+
+  let emojiShown = 0;
+  for (const features of emojiGroups.values()) {
+    if (emojiShown++ >= MAX_EMOJI_MARKERS) break;
+    const centers = features.map(feature => feature.properties.center);
+    const lat = centers.reduce((sum, center) => sum + center[1], 0) / centers.length;
+    const lon = centers.reduce((sum, center) => sum + center[0], 0) / centers.length;
+    const grouped = features.length > 1;
+    const marker = L.marker([lat, lon], {
+      keyboard: false,
+      icon: L.divIcon({
+        className: `decor-emoji-icon${grouped ? ' grouped' : ''}`,
+        html: grouped ? emojiHtmlForGroup(features) : emojiForFeature(features[0]),
+        iconSize: grouped ? [56, 28] : [44, 28],
+        iconAnchor: grouped ? [28, 14] : [22, 14],
+      }),
+    });
+    if (grouped) {
+      marker.bindTooltip(`${features.length.toLocaleString()} nearby cells — click to zoom in`);
+      marker.on('click', () => map.setView([lat, lon], Math.min(19, map.getZoom() + 1)));
+    } else {
+      marker.bindPopup(() => popup(features[0]));
+    }
+    marker.addTo(emojiLayer);
+  }
+
+  $('visible-count').textContent = inViewCells.toLocaleString();
   updateMapStats(inViewCells, inViewTypes.size);
   updateFilterCount();
-  if (fitSearchResults && shown && shown <= 50 && searchText) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+  renderSearchResults(searchMatches, totalMatches, inViewCells);
+  if (fitSearchResults && totalMatches && totalMatches <= 50 && searchText) {
+    map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+  }
+  return { totalMatches, inViewCells };
 }
 
 function updateMapStats(cells, types) {
@@ -363,6 +461,41 @@ function tileBboxIntersectsBounds(tile, bounds, pad = 0) {
 
 function tileKeysForBounds(bounds, pad = 0) {
   return tileIndex.tiles.filter(t => tileBboxIntersectsBounds(t, bounds, pad)).map(t => t.parentToken);
+}
+
+function isPointCovered(lat, lng) {
+  return pointInBbox(Number(lat), Number(lng), datasetBbox, DETECTOR_RADIUS_METERS);
+}
+
+function renderCoverageBoundary() {
+  coverageLayer.clearLayers();
+  if (!datasetBbox) return;
+  const [west, south, east, north] = datasetBbox;
+  const [safeSouth, safeWest] = offsetMeters(south, west, DETECTOR_RADIUS_METERS, DETECTOR_RADIUS_METERS);
+  const [safeNorth, safeEast] = offsetMeters(north, east, -DETECTOR_RADIUS_METERS, -DETECTOR_RADIUS_METERS);
+  L.rectangle([[safeSouth, safeWest], [safeNorth, safeEast]], {
+    color: '#8a5a25',
+    weight: 2,
+    opacity: 0.7,
+    fill: false,
+    dashArray: '8 7',
+    interactive: false,
+  }).addTo(coverageLayer);
+}
+
+function reportOutsideCoverage(attemptedLatLng) {
+  // Keep the unsupported attempt as the solver origin so a subsequent search cannot
+  // silently fall back to an older valid scan. It will be rejected by withSolverBusy.
+  lastScanLatLng = attemptedLatLng ? L.latLng(attemptedLatLng) : null;
+  lastCompletedScanLatLng = null;
+  pendingSharedScan = null;
+  detectorLayer.clearLayers();
+  scanCellLayers = [];
+  highlightedDecor = null;
+  $('detector-output').textContent = 'This detector circle is outside or too close to the edge of the supported Los Angeles and Orange County data area.';
+  $('solver-output').textContent = 'Move the map inside the dashed coverage boundary to search for detector spots.';
+  setStatus('Outside the supported LA/OC data area.');
+  updateHash();
 }
 
 function maskToDecors(mask) {
@@ -538,6 +671,7 @@ async function loadDecorDataInner() {
     throw new Error(`Unsupported cell tile schema ${loadedIndex.schemaVersion}; expected ${TILE_INDEX_SCHEMA_VERSION}`);
   }
   tileIndex = loadedIndex;
+  datasetBbox = manifest.bbox || loadedIndex.bbox || null;
   tileByKey = new Map(tileIndex.tiles.map(t => [t.parentToken, t]));
   categories = manifest.categories;
   active = new Set(categories.filter(c => STARTER_CATEGORIES.has(c.name)).map(c => c.name));
@@ -555,21 +689,22 @@ async function loadDecorDataInner() {
   renderTargetOptions();
   syncCheckboxes();
   buildAggregateMarkers();
+  renderCoverageBoundary();
   updateZoomLayers();
   updateHash();
   await loadTilesForCurrentView(INITIAL_TILE_PAD);
   if (initialHash.scan) {
-    // Restore a shared scan: make sure its detector radius has coverage, then scan.
-    // If coverage fails to load, don't scan at all — a partial scan can falsely
-    // report "Roadside-only" for a spot the sender saw full results at.
+    // The OSM extract covers the full published bbox, while the tile index is sparse by
+    // design: it stores only S2 parents containing mapped decor. Therefore zero tile keys
+    // inside the bbox is complete evidence for a valid no-decor/Roadside-only scan, not
+    // missing coverage. A scan is accepted only when its full 100m circle fits inside
+    // the extract boundary.
     const { lat, lng } = initialHash.scan;
-    const coverageKeys = tileKeysForBounds(boundsAround(lat, lng, 200), 0);
-    if (!coverageKeys.length) {
-      // Valid coordinates, but nothing in the tile index there — scanning would
-      // silently no-op or falsely report Roadside-only.
-      setStatus('The shared spot is outside the covered SoCal area.');
+    if (!isPointCovered(lat, lng)) {
+      reportOutsideCoverage([lat, lng]);
     } else {
       try {
+        const coverageKeys = tileKeysForBounds(boundsAround(lat, lng, 200), 0);
         await loadTileKeys(coverageKeys, { redraw: false });
         scanDetector(L.latLng(lat, lng));
         draw();
@@ -578,6 +713,9 @@ async function loadDecorDataInner() {
         setStatus('Could not load the shared spot’s area — tap the map there to retry the scan.');
       }
     }
+  } else if (currentLocation) {
+    if (isPointCovered(currentLocation.lat, currentLocation.lng)) scanDetector(currentLocation);
+    else reportOutsideCoverage(currentLocation);
   }
 }
 
@@ -640,6 +778,11 @@ function centerOnUser() {
       }
       map.setView(currentLocation, Math.max(map.getZoom(), 16));
       lastScanLatLng = currentLocation;
+      if (decorDataReady && !isPointCovered(lat, lon)) {
+        reportOutsideCoverage(currentLocation);
+        resolve(true);
+        return;
+      }
       let loadFailed = false;
       try {
         if (decorDataReady) await loadTilesForCurrentView(INITIAL_TILE_PAD);
@@ -649,7 +792,7 @@ function centerOnUser() {
         loadFailed = true;
         setStatus('Could not load nearby chunks — pan the map or tap "Use my location" again to retry.');
       }
-      if (!loadFailed && cellFeatures.length) scanDetector(currentLocation);
+      if (!loadFailed && decorDataReady) scanDetector(currentLocation);
       resolve(true);
     }, err => {
       setStatus(`Location unavailable: ${err.message}. Showing Costa Mesa.`);
@@ -712,19 +855,26 @@ function cellsWithinDetector(lat, lon) {
   }
   return candidates.filter(c => {
     const [clon, clat] = c.properties.center;
-    return metersBetween(lat, lon, clat, clon) <= 100;
+    return metersBetween(lat, lon, clat, clon) <= DETECTOR_RADIUS_METERS;
   });
 }
 
 function scanDetector(latlng) {
-  if (!cellFeatures.length) return;
+  if (!decorDataReady) {
+    setStatus('Decor data is still loading — try the scan again in a moment.');
+    return;
+  }
+  if (!isPointCovered(latlng.lat, latlng.lng)) {
+    reportOutsideCoverage(latlng);
+    return;
+  }
   lastScanLatLng = latlng;
   lastCompletedScanLatLng = latlng;
   pendingSharedScan = null; // a completed scan supersedes any not-yet-restored shared one
   detectorLayer.clearLayers();
   scanCellLayers = [];
   highlightedDecor = null;
-  L.circle(latlng, { radius: 100, color: '#1e88e5', weight: 2, fillColor: '#1e88e5', fillOpacity: 0.05 }).addTo(detectorLayer);
+  L.circle(latlng, { radius: DETECTOR_RADIUS_METERS, color: '#1e88e5', weight: 2, fillColor: '#1e88e5', fillOpacity: 0.05 }).addTo(detectorLayer);
   L.circleMarker(latlng, { radius: 6, color: '#0d47a1', fillColor: '#2196f3', fillOpacity: 1 }).addTo(detectorLayer);
 
   const cells = cellsWithinDetector(latlng.lat, latlng.lng);
@@ -780,9 +930,10 @@ async function shareScan() {
 }
 
 function scanAt(lat, lon) {
+  if (!isPointCovered(lat, lon)) return { cells: [], decors: new Set(), covered: false };
   const cells = cellsWithinDetector(lat, lon);
   const decors = new Set(cells.flatMap(c => c.properties.decors));
-  return { cells, decors };
+  return { cells, decors, covered: true };
 }
 
 function boundsAround(lat, lon, radiusMeters) {
@@ -813,10 +964,10 @@ function searchCandidatePositions(seedCells, predicate, k = SOLVER_K) {
   const results = [];
   const visited = new Set();
   for (const { clat, clon, cellDist } of ordered) {
-    if (results.length >= k && results[k - 1].dist <= cellDist - 105) break;
-    for (let east = -100; east <= 100; east += 10) {
-      for (let north = -100; north <= 100; north += 10) {
-        if (Math.hypot(east, north) > 100) continue;
+    if (results.length >= k && results[k - 1].dist <= cellDist - (DETECTOR_RADIUS_METERS + 5)) break;
+    for (let east = -DETECTOR_RADIUS_METERS; east <= DETECTOR_RADIUS_METERS; east += 10) {
+      for (let north = -DETECTOR_RADIUS_METERS; north <= DETECTOR_RADIUS_METERS; north += 10) {
+        if (Math.hypot(east, north) > DETECTOR_RADIUS_METERS) continue;
         const [lat, lon] = offsetMeters(clat, clon, east, north);
         const key = `${lat.toFixed(5)},${lon.toFixed(5)}`;
         if (visited.has(key)) continue;
@@ -874,13 +1025,17 @@ async function loadDetectorCoverageForSeeds(seedCells, options = {}) {
   if (keys.size) await loadTileKeys([...keys], options);
 }
 
-async function expandSearchUntilEnough(getSeedCells, predicate) {
+async function expandSearchUntilEnough(getSeedCells, predicate, signal, progressLabel) {
   const origin = lastScanLatLng || map.getCenter();
   let results = [];
   for (let ring = 0; ring <= MAX_SOLVER_TILE_RING; ring++) {
+    if (signal.aborted) throw new DOMException('Search canceled', 'AbortError');
+    $('solver-output').textContent = `${progressLabel} · area ${ring + 1}/${MAX_SOLVER_TILE_RING + 1}`;
     await loadTileRingAround(origin.lat, origin.lng, ring, { redraw: false });
+    if (signal.aborted) throw new DOMException('Search canceled', 'AbortError');
     let seedCells = getSeedCells();
     await loadDetectorCoverageForSeeds(seedCells, { redraw: false });
+    if (signal.aborted) throw new DOMException('Search canceled', 'AbortError');
     seedCells = getSeedCells();
     results = searchCandidatePositions(seedCells, predicate, SOLVER_K);
     if (results.length >= SOLVER_K) break;
@@ -896,28 +1051,40 @@ function setSolverBusy(isBusy) {
     button.disabled = isBusy;
     button.setAttribute('aria-busy', String(isBusy));
   }
+  $('cancel-solver').hidden = !isBusy;
 }
 
 async function withSolverBusy(fn) {
   if (solverInFlight) return;
+  const origin = lastScanLatLng || map.getCenter();
+  if (!isPointCovered(origin.lat, origin.lng)) {
+    reportOutsideCoverage(origin);
+    return;
+  }
   // Old pins would describe a different query (and stay clickable) once a new
   // search starts or exits on validation/error — clear them up front.
   solverPinsLayer.clearLayers();
   lastSolverResults = [];
+  solverAbortController = new AbortController();
   setSolverBusy(true);
   try {
-    await fn();
+    await fn(solverAbortController.signal);
   } catch (err) {
-    console.error(err);
-    $('solver-output').textContent = 'Search failed while loading map chunks — check your connection and try again.';
+    if (err?.name === 'AbortError') {
+      $('solver-output').textContent = 'Search canceled.';
+    } else {
+      console.error(err);
+      $('solver-output').textContent = 'Search failed while loading map chunks — check your connection and try again.';
+    }
   } finally {
+    solverAbortController = null;
     setSolverBusy(false);
   }
 }
 
 async function findPureTarget() {
   if (!decorDataReady) return;
-  await withSolverBusy(async () => {
+  await withSolverBusy(async (signal) => {
     const target = $('target-decor').value;
     if (!target) {
       $('solver-output').textContent = 'Choose a target decor first.';
@@ -926,7 +1093,9 @@ async function findPureTarget() {
     $('solver-output').textContent = `Searching nearby ${target} cells…`;
     const results = await expandSearchUntilEnough(
       () => decorToCells.get(target) || [],
-      (scan) => scan.decors.has(target) && [...scan.decors].every(d => d === target)
+      (scan) => scan.decors.has(target) && [...scan.decors].every(d => d === target),
+      signal,
+      `Searching nearby ${target} cells`,
     );
     showSolverResults(results, `clean ${escapeHtml(target)}`);
   });
@@ -934,7 +1103,7 @@ async function findPureTarget() {
 
 async function findComboTarget() {
   if (!decorDataReady) return;
-  await withSolverBusy(async () => {
+  await withSolverBusy(async (signal) => {
     const targets = selectedTargets();
     if (!targets.length) {
       $('solver-output').textContent = 'Choose a target decor first.';
@@ -952,7 +1121,9 @@ async function findComboTarget() {
       .sort((a, b) => a.length - b.length)[0] || [];
     const results = await expandSearchUntilEnough(
       getSeedCells,
-      (scan) => targets.every(t => scan.decors.has(t)) && (!avoid || !scan.decors.has(avoid))
+      (scan) => targets.every(t => scan.decors.has(t)) && (!avoid || !scan.decors.has(avoid)),
+      signal,
+      `Searching nearby ${describe} cells`,
     );
     showSolverResults(results, escapeHtml(describe));
   });
@@ -960,47 +1131,6 @@ async function findComboTarget() {
 
 function syncCheckboxes() {
   document.querySelectorAll('#filters input').forEach(i => { i.checked = active.has(i.value); });
-}
-
-function safeDecode(value) {
-  // Shared/truncated URLs can carry malformed percent escapes; never let one brick startup.
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return null;
-  }
-}
-
-function parseHash() {
-  const out = {};
-  for (const part of location.hash.slice(1).split('&')) {
-    const eq = part.indexOf('=');
-    if (eq < 0) continue;
-    const key = part.slice(0, eq);
-    const value = part.slice(eq + 1);
-    if (key === 'map') {
-      // All three parts must be present and non-empty: Number('') is 0, so a truncated
-      // "#map=13//" would otherwise pass range checks and strand the view at (0,0).
-      const parts = value.split('/');
-      if (parts.length !== 3 || parts.some(p => p === '')) continue;
-      const [z, lat, lng] = parts.map(Number);
-      // Reject out-of-range values from crafted/corrupted URLs: huge coordinates can
-      // overflow Leaflet's Web Mercator projection.
-      const valid = Number.isFinite(z) && Number.isFinite(lat) && Number.isFinite(lng) &&
-        z >= 2 && z <= 19 && lat >= -85 && lat <= 85 && lng >= -180 && lng <= 180;
-      if (valid) out.view = { z: Math.round(z), lat, lng };
-    } else if (key === 'decors') {
-      out.decors = value.split(',').filter(Boolean).map(safeDecode).filter(d => d !== null);
-    } else if (key === 'scan') {
-      const parts = value.split('/');
-      if (parts.length !== 2 || parts.some(p => p === '')) continue;
-      const [lat, lng] = parts.map(Number);
-      if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= -85 && lat <= 85 && lng >= -180 && lng <= 180) {
-        out.scan = { lat, lng };
-      }
-    }
-  }
-  return out;
 }
 
 function currentHash() {
@@ -1034,6 +1164,16 @@ $('search').addEventListener('input', (e) => {
     searchText = e.target.value.trim().toLowerCase();
     draw({ fitSearchResults: true });
   }, 150);
+});
+$('search-results').addEventListener('click', (e) => {
+  const button = e.target.closest('[data-search-token]');
+  if (!button) return;
+  const feature = allFeatures.find(candidate => (candidate.properties.token || candidate.id) === button.dataset.searchToken);
+  if (!feature) return;
+  const [lon, lat] = feature.properties.center;
+  map.setView([lat, lon], Math.max(map.getZoom(), 16));
+  draw();
+  requestAnimationFrame(() => featureLayersByToken.get(button.dataset.searchToken)?.openPopup?.());
 });
 $('locate-me').addEventListener('click', () => centerOnUser());
 $('load-data').addEventListener('click', async () => {
@@ -1073,6 +1213,7 @@ $('clear-all').addEventListener('click', () => {
 });
 $('find-pure').addEventListener('click', () => findPureTarget());
 $('find-combo').addEventListener('click', () => findComboTarget());
+$('cancel-solver').addEventListener('click', () => solverAbortController?.abort());
 $('fab-locate').addEventListener('click', () => centerOnUser());
 $('filter-search').addEventListener('input', () => applyFilterSearch());
 $('save-offline').addEventListener('click', async () => {
@@ -1147,13 +1288,29 @@ function sheetOffsets() {
   return { full: 0, half: Math.round(h * 0.5), peek: Math.max(0, h - 92) };
 }
 
-function applySheetState() {
-  sheetHandle.setAttribute('aria-expanded', String(sheetState !== 'peek'));
+function updateSheetChrome(offset) {
   if (!isMobileSheet()) {
-    sidebar.style.transform = '';
+    document.documentElement.style.setProperty('--sheet-visible-height', '0px');
+    document.body.classList.remove('sheet-full');
     return;
   }
-  sidebar.style.transform = `translateY(${sheetOffsets()[sheetState]}px)`;
+  const visibleHeight = Math.max(0, sidebar.offsetHeight - offset);
+  document.documentElement.style.setProperty('--sheet-visible-height', `${Math.round(visibleHeight)}px`);
+  document.body.classList.toggle('sheet-full', visibleHeight >= sidebar.offsetHeight - 20);
+}
+
+function applySheetState() {
+  const labels = { peek: 'Show panel', half: 'Expand panel', full: 'Minimize panel' };
+  sheetHandle.setAttribute('aria-expanded', String(sheetState !== 'peek'));
+  sheetHandle.setAttribute('aria-label', labels[sheetState]);
+  if (!isMobileSheet()) {
+    sidebar.style.transform = '';
+    updateSheetChrome(0);
+    return;
+  }
+  const offset = sheetOffsets()[sheetState];
+  sidebar.style.transform = `translateY(${offset}px)`;
+  updateSheetChrome(offset);
 }
 
 function cycleSheetState() {
@@ -1186,6 +1343,7 @@ sheetHandle.addEventListener('pointermove', (e) => {
   const { peek } = sheetOffsets();
   const next = Math.min(Math.max(0, sheetDragStartOffset + (e.clientY - sheetDragStartY)), peek);
   sidebar.style.transform = `translateY(${next}px)`;
+  updateSheetChrome(next);
 });
 function endSheetDrag(e, cancelled = false) {
   if (sheetDragStartY === null) return;
@@ -1216,6 +1374,14 @@ $('solver-output').addEventListener('click', (e) => {
   map.setView([result.lat, result.lon], Math.max(map.getZoom(), 17));
 });
 map.on('click', async (e) => {
+  if (!decorDataReady) {
+    setStatus('Decor data is still loading — try the scan again in a moment.');
+    return;
+  }
+  if (!isPointCovered(e.latlng.lat, e.latlng.lng)) {
+    reportOutsideCoverage(e.latlng);
+    return;
+  }
   if (decorDataReady) {
     try {
       await loadTileKeys(tileKeysForBounds(L.latLngBounds(e.latlng, e.latlng), DETECTOR_TILE_PAD));
@@ -1244,7 +1410,7 @@ map.on('moveend', () => {
 });
 map.on('zoomend', updateZoomLayers);
 
-const initialHash = parseHash();
+const initialHash = parseAppHash(location.hash);
 pendingSharedScan = initialHash.scan ? { lat: initialHash.scan.lat, lng: initialHash.scan.lng } : null;
 initBasemapOnly();
 if (initialHash.view) map.setView([initialHash.view.lat, initialHash.view.lng], initialHash.view.z);

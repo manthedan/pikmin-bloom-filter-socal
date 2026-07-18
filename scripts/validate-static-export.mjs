@@ -6,6 +6,7 @@ const TILE_INDEX_SCHEMA_VERSION = 3;
 const required = [
   'public/index.html',
   'public/app.js',
+  'public/app-core.js',
   'public/styles.css',
   'public/manifest.webmanifest',
   'public/sw.js',

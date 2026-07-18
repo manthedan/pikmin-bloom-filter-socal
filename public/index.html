@@ -14,7 +14,7 @@
 </head>
 <body>
   <aside id="sidebar">
-    <div class="sheet-handle" id="sheet-handle" role="button" tabindex="0" aria-label="Expand or collapse panel"><span></span></div>
+    <div class="sheet-handle" id="sheet-handle" role="button" tabindex="0" aria-label="Expand panel"><span aria-hidden="true"></span></div>
     <header>
       <div class="eyebrow">Unofficial detector planner</div>
       <h1>SoCal Pikmin Detector</h1>
@@ -22,12 +22,14 @@
     </header>
 
     <label class="search-label">
-      Search places
-      <input id="search" type="search" placeholder="South Coast Plaza, cafe, park…" />
+      Search loaded spots and decor
+      <input id="search" type="search" placeholder="South Coast Plaza, Starbucks, bakery…" aria-describedby="search-status" autocomplete="off" />
     </label>
+    <small id="search-status" class="search-status" aria-live="polite">Search checks all data loaded around the current map view, independent of filters.</small>
+    <ol id="search-results" class="search-results" aria-label="Loaded search results" hidden></ol>
 
     <div class="stats">
-      <div><strong id="visible-count">0</strong> shown</div>
+      <div><strong id="visible-count" aria-live="polite">0</strong> in view</div>
       <div><span id="total-count">0</span></div>
       <small id="generated" aria-live="polite">Starting map…</small>
       <small id="offline-badge" class="offline-badge" hidden>Offline — showing cached data</small>
@@ -63,6 +65,7 @@
       </label>
       <button id="find-combo" class="primary wide">Find 3 nearby matching spots</button>
       <button id="find-pure" class="wide">Find 3 nearby clean target-only spots</button>
+      <button id="cancel-solver" class="wide" hidden>Cancel search</button>
       <div id="solver-output" aria-live="polite"></div>
     </section>
 
@@ -75,12 +78,13 @@
     <details class="card">
       <summary>How this works</summary>
       <p>Build script extracts Geofabrik/OpenStreetMap data for OC play areas, maps tags to approximate decor categories, converts candidates to S2-like cells, and writes static chunks.</p>
-      <p>Attribution: © OpenStreetMap contributors.</p>
+      <p>Basemap © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> and <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>.</p>
     </details>
   </aside>
 
-  <main>
-    <div id="map"></div>
+  <main aria-labelledby="map-title">
+    <h2 id="map-title" class="sr-only">Decor map</h2>
+    <div id="map" role="region" aria-label="Interactive decor map. Use arrow keys to pan and plus or minus to zoom. Click within the supported area to run a detector scan."></div>
     <div id="map-stats" class="map-pill" hidden aria-live="off">
       <span id="ms-cells">0 cells</span><span class="pill-dot">·</span><span id="ms-types">0 types</span><span id="ms-zoom" class="zoom-badge">Z13</span>
     </div>
